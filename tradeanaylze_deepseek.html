@@ -1,0 +1,1897 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0">
+<meta name="theme-color" content="#6366f1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Forex PnL">
+<meta name="description" content="Forex PnL Calendar Analyzer - wizualizacja wyników tradingowych">
+<link rel="manifest" id="appManifest">
+<link rel="icon" id="appFavicon" type="image/svg+xml">
+<link rel="apple-touch-icon" id="appAppleIcon">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{
+  --bg-1:#f5f7fd;--bg-2:#eef2ff;--bg-3:#e0e7ff;
+  --app-bg:rgba(255,255,255,.82);--app-border:rgba(255,255,255,.9);
+  --app-shadow:0 30px 60px -20px rgba(30,27,75,.18),0 8px 20px -8px rgba(30,27,75,.08);
+  --text-primary:#0f172a;--text-secondary:#475569;--text-muted:#94a3b8;
+  --accent:#4f46e5;--accent-2:#7c3aed;--accent-soft:rgba(79,70,229,.10);
+  --accent-gradient:linear-gradient(135deg,#6366f1,#8b5cf6);
+  --accent-shadow:0 8px 20px -6px rgba(99,102,241,.45);
+  --card-bg:#fff;--card-border:rgba(226,232,240,.9);
+  --card-shadow:0 4px 16px rgba(15,23,42,.04),0 1px 3px rgba(15,23,42,.03);
+  --card-hover-shadow:0 12px 28px -8px rgba(99,102,241,.18);
+  --surface-1:#fff;--surface-2:#f8fafc;--surface-3:#f1f5f9;--surface-hover:#f8fafc;
+  --border-1:#e2e8f0;--border-2:#eef2f7;
+  --positive:#059669;--positive-soft:#d1fae5;
+  --negative:#dc2626;--negative-soft:#fee2e2;
+  --scroll-track:#f1f5f9;--scroll-thumb:#cbd5e1;
+  --day-bg:#fff;--day-border:#e2e8f0;--day-bg-empty:#f8fafc;--day-text:#0f172a;
+  --chart-grid:rgba(148,163,184,.18);--chart-line:#6366f1;
+  --chart-fill-1:rgba(99,102,241,.35);--chart-fill-2:rgba(99,102,241,0);
+  --bottom-nav-bg:rgba(255,255,255,.95);
+  --bottom-nav-border:rgba(226,232,240,.9);
+  --ease-spring:cubic-bezier(.34,1.56,.64,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+}
+[data-theme="dark"]{
+  --bg-1:#0a0f1f;--bg-2:#0f172a;--bg-3:#1e1b4b;
+  --app-bg:rgba(15,23,42,.78);--app-border:rgba(51,65,85,.6);
+  --app-shadow:0 30px 60px -20px rgba(0,0,0,.7),0 8px 20px -8px rgba(0,0,0,.4);
+  --text-primary:#f1f5f9;--text-secondary:#cbd5e1;--text-muted:#94a3b8;
+  --accent:#818cf8;--accent-2:#a78bfa;--accent-soft:rgba(129,140,248,.15);
+  --accent-gradient:linear-gradient(135deg,#6366f1,#a855f7);
+  --accent-shadow:0 8px 20px -6px rgba(139,92,246,.5);
+  --card-bg:#111c33;--card-border:rgba(51,65,85,.6);
+  --card-shadow:0 4px 16px rgba(0,0,0,.3),0 1px 3px rgba(0,0,0,.2);
+  --card-hover-shadow:0 12px 28px -8px rgba(139,92,246,.25);
+  --surface-1:#111c33;--surface-2:#0f172a;--surface-3:#1e293b;--surface-hover:#1e293b;
+  --border-1:#1e293b;--border-2:#1e293b;
+  --positive:#34d399;--positive-soft:rgba(52,211,153,.12);
+  --negative:#f87171;--negative-soft:rgba(248,113,113,.12);
+  --scroll-track:#0f172a;--scroll-thumb:#334155;
+  --day-bg:#111c33;--day-border:#1e293b;--day-bg-empty:#0a0f1f;--day-text:#e2e8f0;
+  --chart-grid:rgba(148,163,184,.12);--chart-line:#a5b4fc;
+  --chart-fill-1:rgba(165,180,252,.3);--chart-fill-2:rgba(165,180,252,0);
+  --bottom-nav-bg:rgba(15,23,42,.95);
+  --bottom-nav-border:rgba(51,65,85,.8);
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+html{scroll-behavior:smooth}
+body{
+  background:radial-gradient(1200px 700px at 10% -10%,var(--bg-3),transparent 60%),
+             radial-gradient(900px 600px at 110% 110%,var(--accent-soft),transparent 55%),
+             linear-gradient(160deg,var(--bg-1) 0%,var(--bg-2) 100%);
+  background-attachment:fixed;min-height:100vh;min-height:100dvh;
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:1.5rem;color:var(--text-primary);
+  transition:background-color .35s ease,color .35s ease;
+  padding-bottom:max(1.5rem,env(safe-area-inset-bottom));
+  overscroll-behavior-y:contain;
+}
+body.theme-transitioning *{transition:background-color .35s ease,border-color .35s ease,color .35s ease!important}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInScale{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+@keyframes modalIn{from{opacity:0;transform:scale(.94) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes modalOut{from{opacity:1;transform:scale(1) translateY(0)}to{opacity:0;transform:scale(.94) translateY(20px)}}
+@keyframes dayFadeIn{from{opacity:0;transform:translateY(6px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes barGrow{from{transform:scaleY(0);transform-origin:bottom}to{transform:scaleY(1);transform-origin:bottom}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes toastIn{from{opacity:0;transform:translateY(-16px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes toastOut{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(-16px) scale(.95)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes ripple{from{transform:scale(0);opacity:.5}to{transform:scale(2.5);opacity:0}}
+@keyframes slideInUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes slideOutDown{from{transform:translateY(0)}to{transform:translateY(100%)}}
+@keyframes dropdownIn{from{opacity:0;transform:translateY(-6px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.anim-fade-in{animation:fadeIn .4s var(--ease-out)}
+.anim-fade-up{animation:fadeInUp .5s var(--ease-out) backwards}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+.app-container{
+  max-width:1440px;width:100%;
+  background:var(--app-bg);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);
+  border-radius:2rem;box-shadow:var(--app-shadow);
+  padding:1.75rem 2rem 2rem;border:1px solid var(--app-border);
+  animation:fadeInUp .5s var(--ease-out);position:relative;
+  margin-bottom:calc(env(safe-area-inset-bottom) + 5rem);
+}
+.top-bar{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem}
+.top-bar-left{flex:1;min-width:260px}
+.brand{display:flex;align-items:center;gap:.85rem;margin-bottom:.35rem}
+.brand-icon{width:48px;height:48px;border-radius:14px;background:var(--accent-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.35rem;box-shadow:var(--accent-shadow);transition:transform .3s var(--ease-spring)}
+.brand-icon:hover{transform:rotate(-8deg) scale(1.05)}
+h1{font-size:1.55rem;font-weight:800;letter-spacing:-.03em;color:var(--text-primary);line-height:1.15}
+.subhead{color:var(--text-secondary);font-size:.875rem;margin-left:3.9rem;display:flex;align-items:center;gap:.5rem}
+.subhead .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft);animation:pulse 2s ease-in-out infinite}
+.top-bar-right{display:flex;gap:.55rem;align-items:center;flex-wrap:wrap}
+
+/* Buttons */
+.control-btn{
+  background:var(--card-bg);border:1px solid var(--card-border);color:var(--text-primary);
+  padding:.6rem 1rem;border-radius:12px;font-size:.82rem;font-weight:600;cursor:pointer;
+  display:inline-flex;align-items:center;gap:.5rem;transition:all .18s var(--ease-out);
+  box-shadow:var(--card-shadow);position:relative;overflow:hidden;min-height:40px;
+}
+.control-btn:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px);box-shadow:var(--card-hover-shadow)}
+.control-btn:active{transform:translateY(0) scale(.97)}
+.control-btn i{font-size:.9rem;transition:transform .2s var(--ease-spring)}
+.control-btn:hover i{transform:scale(1.15)}
+.control-btn.primary{background:var(--accent-gradient);color:#fff;border-color:transparent;box-shadow:var(--accent-shadow)}
+.control-btn.primary:hover{color:#fff;box-shadow:0 10px 24px -6px rgba(99,102,241,.55)}
+.control-btn.install{background:linear-gradient(135deg,#10b981,#059669);color:#fff;border-color:transparent;box-shadow:0 8px 20px -6px rgba(16,185,129,.45);display:none}
+.control-btn.install.show{display:inline-flex}
+.ripple{position:absolute;border-radius:50%;background:currentColor;opacity:.3;transform:scale(0);animation:ripple .6s ease-out;pointer-events:none}
+
+/* Selectors (lang + currency) */
+.selector{position:relative}
+.selector-btn{padding:.6rem .85rem;gap:.4rem}
+.selector-btn .flag{font-size:1rem;line-height:1}
+.selector-btn .code{font-size:.75rem;font-weight:700;letter-spacing:.5px}
+.selector-btn .chev{font-size:.6rem!important;opacity:.6}
+.selector-dropdown{
+  position:absolute;top:calc(100% + 6px);right:0;min-width:190px;
+  background:var(--card-bg);border:1px solid var(--card-border);
+  border-radius:14px;box-shadow:0 20px 40px -10px rgba(15,23,42,.25),0 4px 12px -4px rgba(15,23,42,.1);
+  padding:.35rem;z-index:500;display:none;
+  animation:dropdownIn .18s var(--ease-spring);
+}
+.selector-dropdown.show{display:block}
+[data-theme="dark"] .selector-dropdown{box-shadow:0 20px 40px -10px rgba(0,0,0,.6),0 4px 12px -4px rgba(0,0,0,.4)}
+.selector-dropdown button{
+  width:100%;background:transparent;border:none;
+  padding:.55rem .8rem;border-radius:10px;
+  font-size:.85rem;font-weight:600;color:var(--text-primary);
+  cursor:pointer;display:flex;align-items:center;gap:.65rem;
+  text-align:left;transition:background .15s;
+}
+.selector-dropdown button:hover{background:var(--accent-soft);color:var(--accent)}
+.selector-dropdown button.active{background:var(--accent-soft);color:var(--accent)}
+.selector-dropdown button .flag{font-size:1.05rem}
+.selector-dropdown button .name{flex:1}
+.selector-dropdown button .check{opacity:0;font-size:.75rem;color:var(--accent)}
+.selector-dropdown button.active .check{opacity:1}
+.selector-divider{height:1px;background:var(--border-1);margin:.35rem .5rem}
+
+/* Upload */
+.upload-section{display:flex;flex-wrap:wrap;align-items:center;gap:.9rem;background:var(--surface-1);border-radius:16px;padding:.85rem 1.1rem;margin-bottom:1.5rem;border:1px solid var(--border-1);box-shadow:var(--card-shadow);animation:fadeInUp .5s .05s var(--ease-out) backwards}
+.file-input-wrapper{position:relative;display:inline-block}
+.file-input-wrapper input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.custom-file-btn{display:inline-flex;align-items:center;gap:.65rem;background:var(--accent-gradient);color:#fff;font-weight:600;padding:.7rem 1.5rem;border-radius:12px;font-size:.88rem;cursor:pointer;pointer-events:none;box-shadow:var(--accent-shadow);transition:transform .15s var(--ease-spring);min-height:44px}
+.file-input-wrapper:hover .custom-file-btn{transform:translateY(-1px)}
+.file-input-wrapper:active .custom-file-btn{transform:scale(.97)}
+.file-name{font-size:.82rem;color:var(--text-secondary);background:var(--surface-2);padding:.55rem 1rem;border-radius:10px;display:flex;align-items:center;gap:.5rem;border:1px solid var(--border-1);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:all .3s var(--ease-out)}
+.file-name.updated{animation:fadeInScale .3s var(--ease-spring)}
+.file-name i{color:var(--accent)}
+.status-badge{margin-left:auto;background:var(--surface-2);padding:.55rem 1rem;border-radius:10px;font-size:.78rem;font-weight:600;color:var(--text-secondary);display:flex;align-items:center;gap:.5rem;border:1px solid var(--border-1)}
+.status-badge i{color:var(--accent)}
+.status-badge.success i{color:var(--positive)}
+.status-badge.error i{color:var(--negative)}
+
+/* Tabs */
+.tabs-bar{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1.4rem;flex-wrap:wrap;animation:fadeInUp .5s .1s var(--ease-out) backwards}
+.tabs{display:flex;gap:.35rem;padding:.3rem;background:var(--surface-2);border-radius:14px;border:1px solid var(--border-1);flex-wrap:wrap}
+.tab-btn{background:transparent;border:none;padding:.6rem 1.1rem;font-size:.85rem;font-weight:600;color:var(--text-secondary);border-radius:10px;cursor:pointer;transition:all .22s var(--ease-out);display:inline-flex;align-items:center;gap:.5rem;position:relative;min-height:40px}
+.tab-btn:hover{color:var(--accent);background:var(--accent-soft)}
+.tab-btn.active{background:var(--card-bg);color:var(--accent);box-shadow:var(--card-shadow)}
+.tab-btn.active i{transform:scale(1.1)}
+.tab-btn i{font-size:.9rem;transition:transform .25s var(--ease-spring)}
+.tabs-actions{display:flex;gap:.5rem}
+.view-section{display:none}
+.view-section.active{display:block;animation:fadeInUp .35s var(--ease-out)}
+
+/* Calendar */
+.calendar-layout{display:grid;grid-template-columns:1fr 240px;gap:1.25rem;align-items:start}
+.calendar-main{background:var(--surface-1);border-radius:20px;border:1px solid var(--border-1);padding:1.4rem 1.5rem 1.25rem;box-shadow:var(--card-shadow)}
+.calendar-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem;gap:1rem;flex-wrap:wrap}
+.calendar-month-title{font-size:1.4rem;font-weight:800;color:var(--text-primary);letter-spacing:-.025em;display:flex;align-items:center;gap:.75rem;transition:opacity .25s ease,transform .25s ease}
+.calendar-month-title.changing{opacity:0;transform:translateX(-8px)}
+.calendar-month-title::before{content:'';width:4px;height:22px;border-radius:4px;background:var(--accent-gradient)}
+.calendar-nav{display:flex;gap:.4rem}
+.nav-btn{background:var(--surface-2);border:1px solid var(--border-1);color:var(--text-secondary);width:40px;height:40px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s var(--ease-out);font-size:.85rem}
+.nav-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:translateY(-1px);box-shadow:var(--accent-shadow)}
+.nav-btn:active{transform:scale(.9)}
+.month-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:.5rem;background:var(--surface-2);border:1px solid var(--border-1);border-radius:14px;padding:.9rem 1rem;margin-bottom:1.25rem}
+.summary-item{display:flex;flex-direction:column;gap:.25rem;padding:.35rem .5rem}
+.summary-item .label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.55px;color:var(--text-muted)}
+.summary-item .value{font-size:1.05rem;font-weight:800;color:var(--text-primary);letter-spacing:-.02em;line-height:1.2}
+.summary-item .value.pos{color:var(--positive)}
+.summary-item .value.neg{color:var(--negative)}
+.summary-item .value .sub{font-size:.68rem;font-weight:600;color:var(--text-muted);margin-left:.25rem;letter-spacing:0}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;touch-action:pan-y}
+.calendar-day-header{text-align:center;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);padding:.45rem 0}
+.calendar-day{background:var(--day-bg);border:1.5px solid var(--day-border);border-radius:12px;min-height:78px;padding:7px 8px;display:flex;flex-direction:column;justify-content:space-between;position:relative;transition:transform .2s var(--ease-spring),border-color .15s,box-shadow .2s;animation:dayFadeIn .35s var(--ease-out) backwards;will-change:transform}
+.calendar-day.has-data{cursor:pointer}
+.calendar-day.has-data:hover{transform:translateY(-3px) scale(1.02);border-color:var(--accent);box-shadow:0 8px 20px -8px var(--accent-soft),0 4px 10px -4px rgba(0,0,0,.06);z-index:2}
+.calendar-day.has-data:active{transform:scale(.96)}
+.calendar-day.empty{background:var(--day-bg-empty);border-color:transparent;opacity:.4}
+.calendar-day.today{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.calendar-day .day-number{font-size:.78rem;font-weight:700;color:var(--text-muted);line-height:1}
+.calendar-day.has-data .day-number{color:var(--text-secondary)}
+.calendar-day.today .day-number{color:var(--accent);font-weight:800}
+.calendar-day .day-pnl{font-size:.82rem;font-weight:800;line-height:1.1;letter-spacing:-.02em;margin-top:2px}
+.calendar-day .day-pnl.pos{color:var(--positive)}
+.calendar-day .day-pnl.neg{color:var(--negative)}
+.calendar-day .day-trades{font-size:.62rem;color:var(--text-muted);font-weight:600;margin-top:1px}
+.calendar-day.has-data.level-1.pos-bg{background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.18)}
+.calendar-day.has-data.level-2.pos-bg{background:rgba(16,185,129,.14);border-color:rgba(16,185,129,.28)}
+.calendar-day.has-data.level-3.pos-bg{background:rgba(16,185,129,.22);border-color:rgba(16,185,129,.38)}
+.calendar-day.has-data.level-4.pos-bg{background:rgba(16,185,129,.30);border-color:rgba(16,185,129,.48)}
+.calendar-day.has-data.level-5.pos-bg{background:rgba(16,185,129,.42);border-color:rgba(16,185,129,.6)}
+.calendar-day.has-data.level-1.neg-bg{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.18)}
+.calendar-day.has-data.level-2.neg-bg{background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.28)}
+.calendar-day.has-data.level-3.neg-bg{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.38)}
+.calendar-day.has-data.level-4.neg-bg{background:rgba(239,68,68,.30);border-color:rgba(239,68,68,.48)}
+.calendar-day.has-data.level-5.neg-bg{background:rgba(239,68,68,.42);border-color:rgba(239,68,68,.6)}
+[data-theme="dark"] .calendar-day.has-data.level-1.pos-bg{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.2)}
+[data-theme="dark"] .calendar-day.has-data.level-2.pos-bg{background:rgba(52,211,153,.15);border-color:rgba(52,211,153,.3)}
+[data-theme="dark"] .calendar-day.has-data.level-3.pos-bg{background:rgba(52,211,153,.22);border-color:rgba(52,211,153,.4)}
+[data-theme="dark"] .calendar-day.has-data.level-4.pos-bg{background:rgba(52,211,153,.30);border-color:rgba(52,211,153,.5)}
+[data-theme="dark"] .calendar-day.has-data.level-5.pos-bg{background:rgba(52,211,153,.42);border-color:rgba(52,211,153,.65)}
+[data-theme="dark"] .calendar-day.has-data.level-1.neg-bg{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.2)}
+[data-theme="dark"] .calendar-day.has-data.level-2.neg-bg{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.3)}
+[data-theme="dark"] .calendar-day.has-data.level-3.neg-bg{background:rgba(248,113,113,.22);border-color:rgba(248,113,113,.4)}
+[data-theme="dark"] .calendar-day.has-data.level-4.neg-bg{background:rgba(248,113,113,.30);border-color:rgba(248,113,113,.5)}
+[data-theme="dark"] .calendar-day.has-data.level-5.neg-bg{background:rgba(248,113,113,.42);border-color:rgba(248,113,113,.65)}
+.week-panel{background:var(--surface-1);border:1px solid var(--border-1);border-radius:20px;padding:1.2rem 1rem;display:flex;flex-direction:column;gap:.55rem;box-shadow:var(--card-shadow);position:sticky;top:1rem;max-height:calc(100vh - 3rem);overflow-y:auto}
+.week-panel::-webkit-scrollbar{width:6px}
+.week-panel::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:10px}
+.week-panel-title{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);text-align:center;padding-bottom:.6rem;border-bottom:1px solid var(--border-1);margin-bottom:.2rem}
+.week-row{display:flex;flex-direction:column;gap:.15rem;padding:.65rem .8rem;border-radius:12px;background:var(--surface-2);border:1px solid var(--border-1);transition:transform .2s var(--ease-out),border-color .2s;animation:fadeInUp .35s var(--ease-out) backwards}
+.week-row:hover{transform:translateX(3px);border-color:var(--accent)}
+.week-row .week-label{font-size:.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px}
+.week-row .week-pnl{font-size:.95rem;font-weight:800;letter-spacing:-.02em}
+.week-row .week-pnl.pos{color:var(--positive)}
+.week-row .week-pnl.neg{color:var(--negative)}
+.week-row .week-trades{font-size:.66rem;color:var(--text-muted);font-weight:600}
+.week-row.no-data{background:var(--surface-2);border-style:dashed;opacity:.65}
+.week-row.no-data .week-pnl{color:var(--text-muted);font-weight:500;font-size:.8rem}
+.calendar-legend{display:flex;gap:1.1rem;flex-wrap:wrap;margin-top:1.1rem;padding-top:.9rem;border-top:1px solid var(--border-1);font-size:.72rem;color:var(--text-secondary);font-weight:600;align-items:center}
+.legend-item{display:flex;align-items:center;gap:.4rem}
+.legend-dot{width:14px;height:14px;border-radius:5px;display:inline-block}
+.legend-dot.pos{background:rgba(16,185,129,.32);border:1px solid rgba(16,185,129,.5)}
+.legend-dot.neg{background:rgba(239,68,68,.32);border:1px solid rgba(239,68,68,.5)}
+.legend-dot.today{background:transparent;border:2px solid var(--accent);border-radius:5px}
+[data-theme="dark"] .legend-dot.pos{background:rgba(52,211,153,.4);border-color:rgba(52,211,153,.6)}
+[data-theme="dark"] .legend-dot.neg{background:rgba(248,113,113,.4);border-color:rgba(248,113,113,.6)}
+
+/* Metrics */
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.85rem;margin-bottom:1.25rem}
+.metric-card{background:var(--surface-1);border:1px solid var(--border-1);border-radius:16px;padding:1.1rem 1.15rem;box-shadow:var(--card-shadow);transition:transform .25s var(--ease-spring),box-shadow .25s,border-color .2s;animation:fadeInUp .4s var(--ease-out) backwards;position:relative;overflow:hidden}
+.metric-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 60%,var(--accent-soft));opacity:0;transition:opacity .3s;pointer-events:none}
+.metric-card:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:var(--card-hover-shadow)}
+.metric-card:hover::before{opacity:1}
+.metric-card .metric-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.55px;color:var(--text-muted);margin-bottom:.4rem;display:flex;align-items:center;gap:.4rem}
+.metric-card .metric-label i{color:var(--accent);font-size:.8rem;transition:transform .3s var(--ease-spring)}
+.metric-card:hover .metric-label i{transform:scale(1.2) rotate(-8deg)}
+.metric-card .metric-value{font-size:1.5rem;font-weight:800;color:var(--text-primary);letter-spacing:-.03em;line-height:1.15;font-variant-numeric:tabular-nums}
+.metric-card .metric-value.pos{color:var(--positive)}
+.metric-card .metric-value.neg{color:var(--negative)}
+.metric-card .metric-sub{font-size:.7rem;font-weight:600;color:var(--text-muted);margin-top:.35rem}
+.equity-chart-card{background:var(--surface-1);border:1px solid var(--border-1);border-radius:20px;padding:1.3rem 1.3rem 1.1rem;box-shadow:var(--card-shadow);margin-bottom:1.25rem;animation:fadeInUp .4s .05s var(--ease-out) backwards}
+.equity-chart-card .card-title{font-size:.95rem;font-weight:800;color:var(--text-primary);margin-bottom:.85rem;display:flex;align-items:center;gap:.5rem}
+.equity-chart-card .card-title i{color:var(--accent)}
+.chart-canvas-wrap{position:relative;height:340px;width:100%}
+.chart-canvas-wrap canvas{max-width:100%;max-height:100%}
+.streaks-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.85rem;margin-bottom:1.25rem}
+
+/* Heatmap */
+.heatmap-wrap{background:var(--surface-1);border:1px solid var(--border-1);border-radius:20px;padding:1.4rem 1.5rem;box-shadow:var(--card-shadow);animation:fadeInUp .4s var(--ease-out)}
+.heatmap-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;gap:1rem;flex-wrap:wrap}
+.heatmap-title{font-size:1.3rem;font-weight:800;color:var(--text-primary);letter-spacing:-.025em;display:flex;align-items:center;gap:.65rem}
+.heatmap-title::before{content:'';width:4px;height:20px;border-radius:4px;background:var(--accent-gradient)}
+.heatmap-nav{display:flex;gap:.4rem;align-items:center}
+.heatmap-year{font-size:.95rem;font-weight:700;color:var(--text-primary);padding:0 .6rem;min-width:60px;text-align:center;font-variant-numeric:tabular-nums}
+.heatmap-grid{display:flex;flex-direction:column;gap:5px;overflow-x:auto;padding-bottom:.4rem;-webkit-overflow-scrolling:touch}
+.heatmap-grid::-webkit-scrollbar{height:6px}
+.heatmap-grid::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:10px}
+.hm-row{display:grid;grid-template-columns:36px repeat(31,minmax(20px,1fr));gap:4px;align-items:center}
+.hm-label{font-size:.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;text-align:right;padding-right:.35rem}
+.hm-cell{aspect-ratio:1;min-height:20px;border-radius:5px;background:var(--surface-2);border:1px solid transparent;transition:transform .18s var(--ease-spring),border-color .15s;position:relative;animation:fadeInScale .4s var(--ease-out) backwards}
+.hm-cell.has-data{cursor:pointer}
+.hm-cell.has-data:hover{transform:scale(1.25);border-color:var(--accent);z-index:2}
+.hm-cell.has-data:active{transform:scale(.9)}
+.hm-cell.pos-1{background:rgba(16,185,129,.18)}.hm-cell.pos-2{background:rgba(16,185,129,.34)}.hm-cell.pos-3{background:rgba(16,185,129,.5)}.hm-cell.pos-4{background:rgba(16,185,129,.68)}.hm-cell.pos-5{background:rgba(16,185,129,.85)}
+.hm-cell.neg-1{background:rgba(239,68,68,.18)}.hm-cell.neg-2{background:rgba(239,68,68,.34)}.hm-cell.neg-3{background:rgba(239,68,68,.5)}.hm-cell.neg-4{background:rgba(239,68,68,.68)}.hm-cell.neg-5{background:rgba(239,68,68,.85)}
+[data-theme="dark"] .hm-cell.pos-1{background:rgba(52,211,153,.2)}[data-theme="dark"] .hm-cell.pos-2{background:rgba(52,211,153,.36)}[data-theme="dark"] .hm-cell.pos-3{background:rgba(52,211,153,.52)}[data-theme="dark"] .hm-cell.pos-4{background:rgba(52,211,153,.7)}[data-theme="dark"] .hm-cell.pos-5{background:rgba(52,211,153,.9)}
+[data-theme="dark"] .hm-cell.neg-1{background:rgba(248,113,113,.2)}[data-theme="dark"] .hm-cell.neg-2{background:rgba(248,113,113,.36)}[data-theme="dark"] .hm-cell.neg-3{background:rgba(248,113,113,.52)}[data-theme="dark"] .hm-cell.neg-4{background:rgba(248,113,113,.7)}[data-theme="dark"] .hm-cell.neg-5{background:rgba(248,113,113,.9)}
+.hm-cell.today{outline:2px solid var(--accent);outline-offset:1px}
+.hm-legend{display:flex;gap:.4rem;align-items:center;margin-top:1.1rem;font-size:.72rem;color:var(--text-secondary);font-weight:600;flex-wrap:wrap}
+.hm-legend-cell{width:16px;height:16px;border-radius:4px;display:inline-block}
+.hm-tooltip{position:fixed;background:var(--card-bg);color:var(--text-primary);border:1px solid var(--border-1);border-radius:10px;padding:.5rem .7rem;font-size:.75rem;font-weight:600;box-shadow:var(--card-shadow);pointer-events:none;z-index:9999;opacity:0;transform:translateY(-4px) scale(.95);transition:opacity .15s var(--ease-out),transform .15s var(--ease-spring)}
+.hm-tooltip.show{opacity:1;transform:translateY(0) scale(1)}
+.hm-tooltip .tt-date{font-weight:800;margin-bottom:.2rem}
+.hm-tooltip .tt-pnl.pos{color:var(--positive)}
+.hm-tooltip .tt-pnl.neg{color:var(--negative)}
+
+/* Tables */
+.table-wrapper{background:var(--surface-1);border-radius:20px;box-shadow:var(--card-shadow);border:1px solid var(--border-1);overflow:auto;max-height:620px;animation:fadeInUp .4s var(--ease-out);-webkit-overflow-scrolling:touch}
+.table-wrapper::-webkit-scrollbar{width:8px;height:8px}
+.table-wrapper::-webkit-scrollbar-track{background:var(--scroll-track);border-radius:10px}
+.table-wrapper::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:.88rem;min-width:620px}
+th{text-align:left;padding:.9rem 1.1rem;font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);background:var(--surface-2);border-bottom:1px solid var(--border-1);position:sticky;top:0;z-index:10;backdrop-filter:blur(8px)}
+td{padding:.85rem 1.1rem;border-bottom:1px solid var(--border-2);color:var(--text-primary);font-weight:500}
+tbody tr{transition:background .15s;animation:fadeInUp .3s var(--ease-out) backwards}
+tbody tr:hover td{background:var(--surface-hover)}
+tbody tr:last-child td{border-bottom:none}
+.month-pnl,.day-pnl-cell{font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.month-pnl.pos,.day-pnl-cell.pos{color:var(--positive)}
+.month-pnl.neg,.day-pnl-cell.neg{color:var(--negative)}
+.trade-count{background:var(--accent-soft);color:var(--accent);padding:.15rem .7rem;border-radius:20px;font-size:.75rem;font-weight:700;display:inline-block}
+.side-badge{display:inline-block;padding:.15rem .6rem;border-radius:20px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.side-badge.long{background:rgba(16,185,129,.14);color:var(--positive)}
+.side-badge.short{background:rgba(239,68,68,.14);color:var(--negative)}
+.empty-state{text-align:center;padding:3rem 2rem;color:var(--text-muted);display:flex;flex-direction:column;align-items:center;gap:.9rem;animation:fadeIn .4s var(--ease-out)}
+.empty-state i{font-size:2.5rem;color:var(--text-muted);opacity:.5;animation:bounce 2.5s ease-in-out infinite}
+.empty-state p{font-size:.9rem;font-weight:500}
+.loader{display:none;text-align:center;padding:2rem;color:var(--accent);font-weight:600;animation:fadeIn .3s}
+.loader.show{display:block}
+.loader i{font-size:1.6rem;animation:spin .9s linear infinite;margin-right:.5rem;display:inline-block}
+.loader-shimmer{height:60px;border-radius:12px;margin-top:1rem;background:linear-gradient(90deg,var(--surface-2) 25%,var(--surface-3) 50%,var(--surface-2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite linear}
+.chart-container{background:var(--surface-1);border-radius:20px;padding:1.4rem 1.2rem;box-shadow:var(--card-shadow);border:1px solid var(--border-1);margin-bottom:1.25rem;animation:fadeInUp .4s var(--ease-out)}
+.chart-bars{display:flex;align-items:flex-end;justify-content:space-around;height:180px;gap:.4rem;padding:0 .5rem;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.chart-bars::-webkit-scrollbar{height:6px}
+.chart-bars::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:10px}
+.bar-wrapper{display:flex;flex-direction:column;align-items:center;min-width:44px;flex:1}
+.bar{width:100%;max-width:52px;border-radius:8px 8px 4px 4px;transition:height .5s var(--ease-spring),transform .2s;min-height:2px;animation:barGrow .6s var(--ease-out) backwards;transform-origin:bottom}
+.bar-wrapper:hover .bar{transform:scaleX(1.1)}
+.bar.pos{background:linear-gradient(180deg,#34d399,#059669)}
+.bar.neg{background:linear-gradient(180deg,#f87171,#dc2626)}
+.bar-label{font-size:.62rem;font-weight:700;color:var(--text-muted);margin-top:.35rem;text-align:center;white-space:nowrap;transform:rotate(-45deg);transform-origin:top center;height:26px}
+.bar-value{font-size:.58rem;color:var(--text-secondary);margin-bottom:.2rem;font-weight:700}
+
+/* Modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:1000;display:none;align-items:center;justify-content:center;padding:1.5rem;animation:fadeIn .2s ease-out}
+.modal-backdrop.show{display:flex}
+.modal-backdrop.closing{animation:fadeIn .2s ease-out reverse forwards}
+.modal{background:var(--card-bg);border-radius:20px;border:1px solid var(--border-1);box-shadow:0 30px 60px -20px rgba(0,0,0,.5);width:100%;max-width:680px;max-height:80vh;display:flex;flex-direction:column;animation:modalIn .35s var(--ease-spring);position:relative}
+.modal-backdrop.closing .modal{animation:modalOut .25s ease-in forwards}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.4rem;border-bottom:1px solid var(--border-1);gap:1rem}
+.modal-title{font-size:1.05rem;font-weight:800;color:var(--text-primary);display:flex;flex-direction:column;gap:.2rem}
+.modal-title .modal-date{font-size:.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+.modal-title .modal-summary{font-size:.95rem;font-weight:800;letter-spacing:-.02em}
+.modal-close{background:var(--surface-2);border:1px solid var(--border-1);color:var(--text-secondary);width:36px;height:36px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s var(--ease-out)}
+.modal-close:hover{background:var(--negative);color:#fff;border-color:var(--negative);transform:rotate(90deg)}
+.modal-close:active{transform:rotate(90deg) scale(.9)}
+.modal-body{overflow-y:auto;padding:.4rem 0;-webkit-overflow-scrolling:touch}
+.modal-body::-webkit-scrollbar{width:8px}
+.modal-body::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:10px}
+.modal-body table{min-width:auto;font-size:.85rem}
+.modal-body th{padding:.7rem 1.4rem;font-size:.68rem}
+.modal-body td{padding:.7rem 1.4rem}
+.modal-swipe-handle{display:none;width:40px;height:4px;border-radius:4px;background:var(--text-muted);opacity:.4;margin:.6rem auto .2rem}
+
+/* Drop overlay */
+.drop-overlay{position:fixed;inset:0;background:rgba(99,102,241,.15);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:2000;display:none;align-items:center;justify-content:center;padding:2rem}
+.drop-overlay.show{display:flex;animation:fadeIn .18s}
+.drop-inner{background:var(--card-bg);border:3px dashed var(--accent);border-radius:24px;padding:3rem 4rem;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1rem;box-shadow:var(--accent-shadow);animation:modalIn .35s var(--ease-spring)}
+.drop-inner i{font-size:3.5rem;color:var(--accent);animation:bounce 1s ease-in-out infinite}
+.drop-inner p{font-size:1.1rem;font-weight:700;color:var(--text-primary)}
+
+/* Toast */
+.toast-container{position:fixed;top:1.5rem;left:50%;transform:translateX(-50%);z-index:3000;display:flex;flex-direction:column;gap:.5rem;pointer-events:none;max-width:calc(100vw - 2rem)}
+.toast{background:var(--card-bg);border:1px solid var(--border-1);border-radius:12px;padding:.7rem 1.1rem;box-shadow:0 10px 30px -10px rgba(0,0,0,.3);display:flex;align-items:center;gap:.65rem;font-size:.85rem;font-weight:600;color:var(--text-primary);animation:toastIn .35s var(--ease-spring);pointer-events:auto;min-width:200px}
+.toast.hide{animation:toastOut .3s ease-in forwards}
+.toast i{font-size:1rem}
+.toast.success i{color:var(--positive)}
+.toast.error i{color:var(--negative)}
+.toast.info i{color:var(--accent)}
+.toast.warn i{color:#f59e0b}
+
+/* Bottom nav */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bottom-nav-bg);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-top:1px solid var(--bottom-nav-border);z-index:900;padding:.4rem .5rem calc(.4rem + env(safe-area-inset-bottom));animation:slideInUp .35s var(--ease-out)}
+.bottom-nav-inner{display:flex;justify-content:space-around;align-items:center;max-width:520px;margin:0 auto}
+.bn-item{flex:1;background:transparent;border:none;display:flex;flex-direction:column;align-items:center;gap:.15rem;padding:.5rem .25rem;color:var(--text-muted);font-size:.65rem;font-weight:700;border-radius:12px;cursor:pointer;transition:all .2s var(--ease-out);position:relative;min-height:52px;-webkit-tap-highlight-color:transparent}
+.bn-item i{font-size:1.15rem;transition:transform .25s var(--ease-spring)}
+.bn-item.active{color:var(--accent)}
+.bn-item.active i{transform:scale(1.15) translateY(-2px)}
+.bn-item.active::before{content:'';position:absolute;top:2px;left:50%;transform:translateX(-50%);width:24px;height:3px;border-radius:3px;background:var(--accent);animation:fadeInScale .3s var(--ease-spring)}
+.bn-item:active{background:var(--accent-soft)}
+
+/* Responsive */
+@media(max-width:1020px){.calendar-layout{grid-template-columns:1fr}.week-panel{position:static;max-height:none}}
+@media(max-width:720px){
+  body{padding:.75rem;padding-bottom:calc(5.5rem + env(safe-area-inset-bottom))}
+  .app-container{padding:1.15rem 1rem 1.5rem;border-radius:1.5rem;margin-bottom:0}
+  h1{font-size:1.25rem}.subhead{margin-left:0;font-size:.78rem}.brand-icon{width:42px;height:42px;font-size:1.15rem}
+  .calendar-month-title{font-size:1.15rem}
+  .calendar-day{min-height:58px;padding:5px 5px;border-radius:9px}
+  .calendar-day .day-pnl{font-size:.66rem}.calendar-day .day-trades{font-size:.52rem}.calendar-day .day-number{font-size:.68rem}
+  .calendar-day.has-data:hover{transform:translateY(-1px) scale(1.01)}
+  .month-summary{grid-template-columns:repeat(3,1fr);gap:.35rem;padding:.7rem}
+  .summary-item{padding:.25rem .35rem}.summary-item .value{font-size:.88rem}.summary-item .label{font-size:.58rem}
+  .upload-section{flex-direction:column;align-items:stretch;padding:.75rem}
+  .file-input-wrapper{width:100%}.custom-file-btn{justify-content:center;width:100%}
+  .file-name{max-width:100%;justify-content:center}
+  .status-badge{margin-left:0;justify-content:center}
+  .top-bar{flex-direction:column}.top-bar-right{width:100%;justify-content:flex-end}
+  .tabs-bar{flex-direction:column;align-items:stretch;gap:.6rem}
+  .tabs{justify-content:center;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab-btn{padding:.55rem .85rem;font-size:.78rem;white-space:nowrap}.tab-btn span{display:none}.tab-btn i{font-size:1rem}
+  .tabs-actions{justify-content:stretch;gap:.5rem}.tabs-actions .control-btn{flex:1;justify-content:center}
+  .metric-card .metric-value{font-size:1.2rem}.metric-card{padding:.9rem 1rem}
+  .metrics-grid{grid-template-columns:repeat(2,1fr);gap:.55rem}
+  .streaks-grid{grid-template-columns:repeat(2,1fr);gap:.55rem}
+  .chart-canvas-wrap{height:240px}
+  .hm-row{grid-template-columns:28px repeat(31,minmax(16px,1fr));gap:3px}
+  .hm-label{font-size:.58rem}.hm-cell{min-height:16px;border-radius:4px}
+  .modal-backdrop{padding:0;align-items:flex-end}
+  .modal{max-width:100%;max-height:92vh;border-radius:20px 20px 0 0;animation:slideInUp .35s var(--ease-out)}
+  .modal-backdrop.closing .modal{animation:slideOutDown .25s ease-in forwards}
+  .modal-swipe-handle{display:block}
+  .modal-header{padding:1rem 1.2rem}.modal-title .modal-date{font-size:.72rem}
+  .modal-body th,.modal-body td{padding:.6rem 1rem}
+  .modal-body th:first-child,.modal-body td:first-child{padding-left:1.2rem}
+  .modal-body th:last-child,.modal-body td:last-child{padding-right:1.2rem}
+  .drop-inner{padding:2rem 1.5rem}.drop-inner i{font-size:2.5rem}.drop-inner p{font-size:.95rem}
+  .bottom-nav{display:block}.tabs{display:none}
+  .table-wrapper table th:first-child,.table-wrapper table td:first-child{position:sticky;left:0;z-index:5;background:var(--surface-1);box-shadow:1px 0 0 var(--border-2)}
+  .table-wrapper th:first-child{background:var(--surface-2);z-index:11}
+  .calendar-legend{font-size:.66rem;gap:.6rem}.legend-dot{width:11px;height:11px}
+  .selector-dropdown{right:auto;left:0;min-width:200px}
+}
+@media(max-width:400px){
+  .calendar-day{min-height:50px;padding:4px}.calendar-day .day-pnl{font-size:.6rem}.calendar-day .day-trades{display:none}.calendar-day .day-number{font-size:.62rem}
+  .metrics-grid{grid-template-columns:1fr}.streaks-grid{grid-template-columns:1fr}
+  .month-summary{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:900px) and (orientation:landscape){.calendar-day{min-height:52px}.chart-canvas-wrap{height:200px}}
+@media print{
+  body{background:#fff;padding:0}.app-container{box-shadow:none;border:none;background:#fff;padding:1rem}
+  .top-bar-right,.upload-section,.tabs-bar,.bottom-nav,.tabs-actions,.calendar-nav,.heatmap-nav{display:none!important}
+  .calendar-day{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="app-container" id="appContainer">
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <div class="brand">
+        <div class="brand-icon"><i class="fas fa-chart-line"></i></div>
+        <div>
+          <h1 data-i18n="appTitle">Forex PnL Calendar</h1>
+          <div class="subhead">
+            <span class="dot"></span>
+            <span data-i18n="subhead">Wczytaj plik CSV, aby zobaczyć kalendarz zysków i strat</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="top-bar-right">
+      <button class="control-btn install" id="installBtn" title="Install app">
+        <i class="fas fa-download"></i> <span data-i18n="installApp">Zainstaluj</span>
+      </button>
+      <div class="selector" id="currencySelector">
+        <button class="control-btn selector-btn" id="currencyBtn" aria-label="Currency">
+          <i class="fas fa-coins" style="font-size:.85rem"></i>
+          <span class="code" id="currencyCode">USD</span>
+          <i class="fas fa-chevron-down chev"></i>
+        </button>
+        <div class="selector-dropdown" id="currencyDropdown">
+          <button data-currency="USD"><span class="flag">🇺🇸</span><span class="name">USD — US Dollar</span><i class="fas fa-check check"></i></button>
+          <button data-currency="EUR"><span class="flag">🇪🇺</span><span class="name">EUR — Euro</span><i class="fas fa-check check"></i></button>
+          <button data-currency="PLN"><span class="flag">🇵🇱</span><span class="name">PLN — Polski złoty</span><i class="fas fa-check check"></i></button>
+          <button data-currency="GBP"><span class="flag">🇬🇧</span><span class="name">GBP — British Pound</span><i class="fas fa-check check"></i></button>
+        </div>
+      </div>
+      <div class="selector" id="langSelector">
+        <button class="control-btn selector-btn" id="langBtn" aria-label="Language">
+          <span class="flag" id="langFlag">🇬🇧</span>
+          <span class="code" id="langCode">EN</span>
+          <i class="fas fa-chevron-down chev"></i>
+        </button>
+        <div class="selector-dropdown" id="langDropdown">
+          <button data-lang="en"><span class="flag">🇬🇧</span><span class="name">English</span><i class="fas fa-check check"></i></button>
+          <button data-lang="pl"><span class="flag">🇵🇱</span><span class="name">Polski</span><i class="fas fa-check check"></i></button>
+          <button data-lang="de"><span class="flag">🇩🇪</span><span class="name">Deutsch</span><i class="fas fa-check check"></i></button>
+          <button data-lang="es"><span class="flag">🇪🇸</span><span class="name">Español</span><i class="fas fa-check check"></i></button>
+          <button data-lang="fr"><span class="flag">🇫🇷</span><span class="name">Français</span><i class="fas fa-check check"></i></button>
+          <button data-lang="uk"><span class="flag">🇺🇦</span><span class="name">Українська</span><i class="fas fa-check check"></i></button>
+        </div>
+      </div>
+      <button class="control-btn" id="themeToggle" aria-label="Toggle theme">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="upload-section">
+    <div class="file-input-wrapper">
+      <input type="file" id="csvFileInput" accept=".csv, text/csv" aria-label="CSV file input">
+      <span class="custom-file-btn"><i class="fas fa-cloud-upload-alt"></i> <span data-i18n="chooseFile">Wybierz plik CSV</span></span>
+    </div>
+    <div class="file-name" id="fileNameDisplay">
+      <i class="fas fa-file-csv"></i> <span id="fileNameText" data-i18n="noFile">Nie wybrano pliku</span>
+    </div>
+    <div class="status-badge" id="statusBadge">
+      <i class="fas fa-database"></i> <span id="statusText" data-i18n="ready">gotowy</span>
+    </div>
+  </div>
+
+  <div class="loader" id="loader">
+    <i class="fas fa-spinner"></i> <span data-i18n="processing">Przetwarzanie danych...</span>
+    <div class="loader-shimmer"></div>
+  </div>
+
+  <div class="tabs-bar" id="tabsBar" style="display:none">
+    <div class="tabs" id="tabs">
+      <button class="tab-btn active" data-tab="calendar"><i class="fas fa-calendar-alt"></i> <span data-i18n="calendarTab">Kalendarz</span></button>
+      <button class="tab-btn" data-tab="analytics"><i class="fas fa-chart-pie"></i> <span data-i18n="analyticsTab">Analityka</span></button>
+      <button class="tab-btn" data-tab="heatmap"><i class="fas fa-th"></i> <span data-i18n="heatmapTab">Heatmapa</span></button>
+      <button class="tab-btn" data-tab="monthly"><i class="fas fa-table"></i> <span data-i18n="monthlyTab">Miesięczne</span></button>
+      <button class="tab-btn" data-tab="daily"><i class="fas fa-chart-bar"></i> <span data-i18n="dailyTab">Dzienne</span></button>
+    </div>
+    <div class="tabs-actions">
+      <button class="control-btn" id="exportCsvBtn"><i class="fas fa-file-csv"></i> <span data-i18n="exportCsv">CSV</span></button>
+      <button class="control-btn primary" id="exportPngBtn"><i class="fas fa-image"></i> <span data-i18n="exportPng">PNG</span></button>
+    </div>
+  </div>
+
+  <div class="view-section active" id="view-calendar">
+    <div class="empty-state" id="emptyStateCalendar"><i class="fas fa-file-upload"></i><p data-i18n="emptyCalendar">Wczytaj plik CSV, aby zobaczyć kalendarz</p></div>
+    <div class="calendar-layout" id="calendarLayout" style="display:none">
+      <div class="calendar-main" id="calendarMain">
+        <div class="calendar-header">
+          <div class="calendar-month-title" id="calendarMonthTitle">—</div>
+          <div class="calendar-nav">
+            <button class="nav-btn" id="prevMonthBtn" aria-label="Previous month"><i class="fas fa-chevron-left"></i></button>
+            <button class="nav-btn" id="nextMonthBtn" aria-label="Next month"><i class="fas fa-chevron-right"></i></button>
+          </div>
+        </div>
+        <div class="month-summary" id="monthSummary">
+          <div class="summary-item"><span class="label" data-i18n="monthResult">Wynik miesiąca</span><span class="value" id="sumMonthPnl">—</span></div>
+          <div class="summary-item"><span class="label" data-i18n="tradingDays">Dni handlowe</span><span class="value" id="sumTradingDays">—</span></div>
+          <div class="summary-item"><span class="label" data-i18n="plusMinusDays">Dni +/-</span><span class="value" id="sumPlusMinus">—</span></div>
+          <div class="summary-item"><span class="label" data-i18n="bestDay">Najlepszy dzień</span><span class="value pos" id="sumBestDay">—</span></div>
+          <div class="summary-item"><span class="label" data-i18n="worstDay">Najgorszy dzień</span><span class="value neg" id="sumWorstDay">—</span></div>
+          <div class="summary-item"><span class="label" data-i18n="tradesLabel">Transakcje</span><span class="value" id="sumTrades">—</span></div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+        <div class="calendar-legend">
+          <div class="legend-item"><span class="legend-dot pos"></span><span data-i18n="legendProfit">dzień na plusie</span></div>
+          <div class="legend-item"><span class="legend-dot neg"></span><span data-i18n="legendLoss">dzień na minusie</span></div>
+          <div class="legend-item"><span class="legend-dot today"></span><span data-i18n="legendToday">dzisiaj</span></div>
+          <div class="legend-item"><i class="fas fa-info-circle" style="color:var(--accent)"></i><span data-i18n="legendIntensity">Intensywność koloru zależy od wielkości wyniku</span></div>
+        </div>
+      </div>
+      <div class="week-panel" id="weekPanel"><div class="week-panel-title" data-i18n="weekPanelTitle">Tydzień</div></div>
+    </div>
+  </div>
+
+  <div class="view-section" id="view-analytics">
+    <div class="empty-state" id="emptyStateAnalytics"><i class="fas fa-chart-pie"></i><p data-i18n="emptyAnalytics">Wczytaj plik CSV, aby zobaczyć analitykę</p></div>
+    <div id="analyticsContent" style="display:none">
+      <div class="metrics-grid" id="metricsGrid"></div>
+      <div class="equity-chart-card">
+        <div class="card-title"><i class="fas fa-chart-line"></i> <span data-i18n="equityCurve">Krzywa kapitału</span></div>
+        <div class="chart-canvas-wrap"><canvas id="equityChart"></canvas></div>
+      </div>
+      <div class="streaks-grid" id="streaksGrid"></div>
+    </div>
+  </div>
+
+  <div class="view-section" id="view-heatmap">
+    <div class="empty-state" id="emptyStateHeatmap"><i class="fas fa-th"></i><p data-i18n="emptyHeatmap">Wczytaj plik CSV, aby zobaczyć heatmapę</p></div>
+    <div class="heatmap-wrap" id="heatmapWrap" style="display:none">
+      <div class="heatmap-header">
+        <div class="heatmap-title" data-i18n="heatmapTab">Heatmapa</div>
+        <div class="heatmap-nav">
+          <button class="nav-btn" id="hmPrevYear"><i class="fas fa-chevron-left"></i></button>
+          <span class="heatmap-year" id="hmYear">—</span>
+          <button class="nav-btn" id="hmNextYear"><i class="fas fa-chevron-right"></i></button>
+        </div>
+      </div>
+      <div class="heatmap-grid" id="heatmapGrid"></div>
+      <div class="hm-legend">
+        <span data-i18n="hmLegendLoss">Strata</span>
+        <span class="hm-legend-cell" style="background:rgba(239,68,68,.85)"></span>
+        <span class="hm-legend-cell" style="background:rgba(239,68,68,.5)"></span>
+        <span class="hm-legend-cell" style="background:rgba(239,68,68,.2)"></span>
+        <span class="hm-legend-cell" style="background:var(--surface-2);border:1px solid var(--border-1)"></span>
+        <span class="hm-legend-cell" style="background:rgba(16,185,129,.2)"></span>
+        <span class="hm-legend-cell" style="background:rgba(16,185,129,.5)"></span>
+        <span class="hm-legend-cell" style="background:rgba(16,185,129,.85)"></span>
+        <span data-i18n="hmLegendProfit">Zysk</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="view-section" id="view-monthly">
+    <div class="table-wrapper">
+      <div class="empty-state" id="emptyStateMonthly"><i class="fas fa-file-upload"></i><p data-i18n="emptyMonthly">Wczytaj plik CSV, aby zobaczyć analizę miesięczną</p></div>
+      <table id="monthlyTable" style="display:none">
+        <thead><tr><th data-i18n="thMonth">Miesiąc</th><th data-i18n="thTrades">Liczba transakcji</th><th data-i18n="thPnl">Zysk/Strata</th><th data-i18n="thAvg">Średnia na transakcję</th></tr></thead>
+        <tbody id="monthlyTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="view-section" id="view-daily">
+    <div class="chart-container" id="dailyChartContainer" style="display:none"><div class="chart-bars" id="dailyChartBars"></div></div>
+    <div class="table-wrapper">
+      <div class="empty-state" id="emptyStateDaily"><i class="fas fa-file-upload"></i><p data-i18n="emptyDaily">Wczytaj plik CSV, aby zobaczyć analizę dzienną</p></div>
+      <table id="dailyTable" style="display:none">
+        <thead><tr><th data-i18n="thDate">Data</th><th data-i18n="thDayOfWeek">Dzień tygodnia</th><th data-i18n="thTrades">Liczba transakcji</th><th data-i18n="thPnl">Zysk/Strata</th><th data-i18n="thAvg">Średnia na transakcję</th></tr></thead>
+        <tbody id="dailyTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav" id="bottomNav" style="display:none">
+  <div class="bottom-nav-inner">
+    <button class="bn-item active" data-tab="calendar"><i class="fas fa-calendar-alt"></i><span data-i18n="bnCalendar">Kalendarz</span></button>
+    <button class="bn-item" data-tab="analytics"><i class="fas fa-chart-pie"></i><span data-i18n="bnAnalytics">Analityka</span></button>
+    <button class="bn-item" data-tab="heatmap"><i class="fas fa-th"></i><span data-i18n="bnHeatmap">Heatmapa</span></button>
+    <button class="bn-item" data-tab="monthly"><i class="fas fa-table"></i><span data-i18n="bnMonthly">Miesiące</span></button>
+    <button class="bn-item" data-tab="daily"><i class="fas fa-chart-bar"></i><span data-i18n="bnDaily">Dni</span></button>
+  </div>
+</nav>
+
+<div class="modal-backdrop" id="dayModal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-swipe-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">
+        <span class="modal-date" id="modalDate">—</span>
+        <span class="modal-summary" id="modalSummary">—</span>
+      </div>
+      <button class="modal-close" id="modalClose" aria-label="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="drop-overlay" id="dropOverlay">
+  <div class="drop-inner"><i class="fas fa-file-csv"></i><p data-i18n="dropFile">Upuść plik CSV tutaj</p></div>
+</div>
+
+<div class="hm-tooltip" id="hmTooltip"></div>
+
+<script>
+(function(){
+'use strict';
+
+// ============ TŁUMACZENIA ============
+const translations = {
+  en:{
+    appTitle:'Forex PnL Calendar',subhead:'Load a CSV file to see the profit/loss calendar',
+    chooseFile:'Choose CSV file',noFile:'No file selected',ready:'ready',processing:'Processing data...',
+    calendarTab:'Calendar',analyticsTab:'Analytics',heatmapTab:'Heatmap',monthlyTab:'Monthly',dailyTab:'Daily',
+    bnCalendar:'Calendar',bnAnalytics:'Analytics',bnHeatmap:'Heatmap',bnMonthly:'Months',bnDaily:'Days',
+    exportCsv:'CSV',exportPng:'PNG',dropFile:'Drop CSV file here',installApp:'Install',
+    emptyCalendar:'Load a CSV file to see the calendar',emptyMonthly:'Load a CSV file to see monthly analysis',
+    emptyDaily:'Load a CSV file to see daily analysis',emptyAnalytics:'Load a CSV file to see analytics',
+    emptyHeatmap:'Load a CSV file to see the heatmap',
+    thMonth:'Month',thTrades:'Trade count',thPnl:'Profit/Loss',thAvg:'Avg per trade',
+    thDate:'Date',thDayOfWeek:'Day of week',thTime:'Time',thSymbol:'Symbol',thSide:'Side',thPnlShort:'PnL',
+    darkMode:'Dark mode',lightMode:'Light mode',
+    loadedTrades:'loaded {n} trades',noData:'no data',error:'error',readError:'read error',
+    invalidData:'Could not read data. Check the CSV file format.',emptyFile:'No data in file or invalid format.',
+    months:['January','February','March','April','May','June','July','August','September','October','November','December'],
+    monthsShort:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    monthsVeryShort:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    dayHeaders:['Mo','Tu','We','Th','Fr','Sa','Su'],
+    dayFull:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+    locale:'en-US',
+    weekPanelTitle:'Week',weekLabel:'Wk.',noDataShort:'no data',
+    monthResult:'Month result',tradingDays:'Trading days',plusMinusDays:'Plus / minus days',
+    bestDay:'Best day',worstDay:'Worst day',tradesLabel:'Trades',
+    legendProfit:'profit day',legendLoss:'loss day',legendToday:'today',
+    legendIntensity:'Color intensity depends on result size',
+    tradesShort:'trades',hmLegendProfit:'Profit',hmLegendLoss:'Loss',
+    winRate:'Win rate',profitFactor:'Profit factor',maxDD:'Max drawdown',expectancy:'Expectancy',
+    avgWin:'Avg win',avgLoss:'Avg loss',payoffRatio:'Payoff ratio',totalPnlMetric:'Total PnL',
+    bestWinStreak:'Best streak',bestLossStreak:'Worst streak',winStreakSub:'winning days in a row',lossStreakSub:'losing days in a row',
+    equityCurve:'Equity curve',profitFactorSub:'gross win / gross loss',
+    winRateSub:'% of profitable trades',expectancySub:'expected profit / trade',
+    maxDDSub:'maximum peak-to-trough decline',payoffSub:'avg win / avg loss',
+    sideLong:'Long',sideShort:'Short',
+    toastFileLoaded:'Loaded {n} trades',toastExported:'File exported',
+    toastOffline:'Offline mode — using cache',toastOnline:'Back online',
+    toastInstalled:'App installed successfully',toastLangChanged:'Language changed'
+  },
+  pl:{
+    appTitle:'Forex PnL Calendar',subhead:'Wczytaj plik CSV, aby zobaczyć kalendarz zysków i strat',
+    chooseFile:'Wybierz plik CSV',noFile:'Nie wybrano pliku',ready:'gotowy',processing:'Przetwarzanie danych...',
+    calendarTab:'Kalendarz',analyticsTab:'Analityka',heatmapTab:'Heatmapa',monthlyTab:'Miesięczne',dailyTab:'Dzienne',
+    bnCalendar:'Kalendarz',bnAnalytics:'Analityka',bnHeatmap:'Heatmapa',bnMonthly:'Miesiące',bnDaily:'Dni',
+    exportCsv:'CSV',exportPng:'PNG',dropFile:'Upuść plik CSV tutaj',installApp:'Zainstaluj',
+    emptyCalendar:'Wczytaj plik CSV, aby zobaczyć kalendarz',emptyMonthly:'Wczytaj plik CSV, aby zobaczyć analizę miesięczną',
+    emptyDaily:'Wczytaj plik CSV, aby zobaczyć analizę dzienną',emptyAnalytics:'Wczytaj plik CSV, aby zobaczyć analitykę',
+    emptyHeatmap:'Wczytaj plik CSV, aby zobaczyć heatmapę',
+    thMonth:'Miesiąc',thTrades:'Liczba transakcji',thPnl:'Zysk/Strata',thAvg:'Średnia na transakcję',
+    thDate:'Data',thDayOfWeek:'Dzień tygodnia',thTime:'Czas',thSymbol:'Symbol',thSide:'Strona',thPnlShort:'PnL',
+    darkMode:'Tryb ciemny',lightMode:'Tryb jasny',
+    loadedTrades:'wczytano {n} transakcji',noData:'brak danych',error:'błąd',readError:'błąd odczytu',
+    invalidData:'Nie udało się odczytać danych. Sprawdź format pliku CSV.',emptyFile:'Brak danych w pliku lub nieprawidłowy format.',
+    months:['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'],
+    monthsShort:['sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru'],
+    monthsVeryShort:['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'],
+    dayHeaders:['Pn','Wt','Śr','Cz','Pt','Sb','Nd'],
+    dayFull:['Niedziela','Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota'],
+    locale:'pl-PL',
+    weekPanelTitle:'Tydzień',weekLabel:'Tydz.',noDataShort:'brak',
+    monthResult:'Wynik miesiąca',tradingDays:'Dni handlowe',plusMinusDays:'Dni +/-',
+    bestDay:'Najlepszy dzień',worstDay:'Najgorszy dzień',tradesLabel:'Transakcje',
+    legendProfit:'dzień na plusie',legendLoss:'dzień na minusie',legendToday:'dzisiaj',
+    legendIntensity:'Intensywność koloru zależy od wielkości wyniku',
+    tradesShort:'transakcji',hmLegendProfit:'Zysk',hmLegendLoss:'Strata',
+    winRate:'Win rate',profitFactor:'Profit factor',maxDD:'Max drawdown',expectancy:'Expectancy',
+    avgWin:'Średnia wygrana',avgLoss:'Średnia przegrana',payoffRatio:'Payoff ratio',totalPnlMetric:'Łączny PnL',
+    bestWinStreak:'Najlepsza passa',bestLossStreak:'Najgorsza passa',winStreakSub:'wygrane dni z rzędu',lossStreakSub:'przegrane dni z rzędu',
+    equityCurve:'Krzywa kapitału',profitFactorSub:'suma zysków / strata',
+    winRateSub:'% zyskownych transakcji',expectancySub:'oczekiwany zysk / transakcja',
+    maxDDSub:'największe obsunięcie',payoffSub:'avg win / avg loss',
+    sideLong:'Long',sideShort:'Short',
+    toastFileLoaded:'Załadowano {n} transakcji',toastExported:'Wyeksportowano plik',
+    toastOffline:'Tryb offline — używam cache',toastOnline:'Znowu online',
+    toastInstalled:'Aplikacja zainstalowana',toastLangChanged:'Zmieniono język'
+  },
+  de:{
+    appTitle:'Forex PnL Kalender',subhead:'Laden Sie eine CSV-Datei, um den Gewinn/Verlust-Kalender zu sehen',
+    chooseFile:'CSV-Datei wählen',noFile:'Keine Datei gewählt',ready:'bereit',processing:'Daten werden verarbeitet...',
+    calendarTab:'Kalender',analyticsTab:'Analyse',heatmapTab:'Heatmap',monthlyTab:'Monatlich',dailyTab:'Täglich',
+    bnCalendar:'Kalender',bnAnalytics:'Analyse',bnHeatmap:'Heatmap',bnMonthly:'Monate',bnDaily:'Tage',
+    exportCsv:'CSV',exportPng:'PNG',dropFile:'CSV-Datei hier ablegen',installApp:'Installieren',
+    emptyCalendar:'Laden Sie eine CSV-Datei, um den Kalender zu sehen',emptyMonthly:'Laden Sie eine CSV-Datei für die monatliche Analyse',
+    emptyDaily:'Laden Sie eine CSV-Datei für die tägliche Analyse',emptyAnalytics:'Laden Sie eine CSV-Datei für die Analyse',
+    emptyHeatmap:'Laden Sie eine CSV-Datei für die Heatmap',
+    thMonth:'Monat',thTrades:'Anzahl Trades',thPnl:'Gewinn/Verlust',thAvg:'Durchschnitt pro Trade',
+    thDate:'Datum',thDayOfWeek:'Wochentag',thTime:'Zeit',thSymbol:'Symbol',thSide:'Seite',thPnlShort:'PnL',
+    darkMode:'Dunkelmodus',lightMode:'Hellmodus',
+    loadedTrades:'{n} Trades geladen',noData:'keine Daten',error:'Fehler',readError:'Lesefehler',
+    invalidData:'Daten konnten nicht gelesen werden. Prüfen Sie das CSV-Format.',emptyFile:'Keine Daten oder ungültiges Format.',
+    months:['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
+    monthsShort:['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'],
+    monthsVeryShort:['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'],
+    dayHeaders:['Mo','Di','Mi','Do','Fr','Sa','So'],
+    dayFull:['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'],
+    locale:'de-DE',
+    weekPanelTitle:'Woche',weekLabel:'Wo.',noDataShort:'keine',
+    monthResult:'Monatsergebnis',tradingDays:'Handelstage',plusMinusDays:'Plus / Minus Tage',
+    bestDay:'Bester Tag',worstDay:'Schlechtester Tag',tradesLabel:'Trades',
+    legendProfit:'Gewinntag',legendLoss:'Verlusttag',legendToday:'heute',
+    legendIntensity:'Farbintensität hängt von der Größe ab',
+    tradesShort:'Trades',hmLegendProfit:'Gewinn',hmLegendLoss:'Verlust',
+    winRate:'Gewinnrate',profitFactor:'Profitfaktor',maxDD:'Max. Drawdown',expectancy:'Erwartungswert',
+    avgWin:'Ø Gewinn',avgLoss:'Ø Verlust',payoffRatio:'Payoff-Verhältnis',totalPnlMetric:'Gesamt PnL',
+    bestWinStreak:'Beste Serie',bestLossStreak:'Schlechteste Serie',winStreakSub:'Gewinntage in Folge',lossStreakSub:'Verlusttage in Folge',
+    equityCurve:'Kapitalkurve',profitFactorSub:'Bruttogewinn / Bruttoverlust',
+    winRateSub:'% profitabler Trades',expectancySub:'erwarteter Gewinn / Trade',
+    maxDDSub:'maximaler Rückgang',payoffSub:'Ø Gewinn / Ø Verlust',
+    sideLong:'Long',sideShort:'Short',
+    toastFileLoaded:'{n} Trades geladen',toastExported:'Datei exportiert',
+    toastOffline:'Offline-Modus — Cache wird verwendet',toastOnline:'Wieder online',
+    toastInstalled:'App installiert',toastLangChanged:'Sprache geändert'
+  },
+  es:{
+    appTitle:'Calendario Forex PnL',subhead:'Carga un archivo CSV para ver el calendario de ganancias/pérdidas',
+    chooseFile:'Elegir archivo CSV',noFile:'Sin archivo',ready:'listo',processing:'Procesando datos...',
+    calendarTab:'Calendario',analyticsTab:'Análisis',heatmapTab:'Mapa de calor',monthlyTab:'Mensual',dailyTab:'Diario',
+    bnCalendar:'Calendario',bnAnalytics:'Análisis',bnHeatmap:'Mapa',bnMonthly:'Meses',bnDaily:'Días',
+    exportCsv:'CSV',exportPng:'PNG',dropFile:'Suelta el archivo CSV aquí',installApp:'Instalar',
+    emptyCalendar:'Carga un CSV para ver el calendario',emptyMonthly:'Carga un CSV para el análisis mensual',
+    emptyDaily:'Carga un CSV para el análisis diario',emptyAnalytics:'Carga un CSV para el análisis',
+    emptyHeatmap:'Carga un CSV para el mapa de calor',
+    thMonth:'Mes',thTrades:'Nº de operaciones',thPnl:'Ganancia/Pérdida',thAvg:'Promedio por op.',
+    thDate:'Fecha',thDayOfWeek:'Día de la semana',thTime:'Hora',thSymbol:'Símbolo',thSide:'Lado',thPnlShort:'PnL',
+    darkMode:'Modo oscuro',lightMode:'Modo claro',
+    loadedTrades:'{n} operaciones cargadas',noData:'sin datos',error:'error',readError:'error de lectura',
+    invalidData:'No se pudieron leer los datos. Verifica el formato CSV.',emptyFile:'Sin datos o formato inválido.',
+    months:['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+    monthsShort:['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+    monthsVeryShort:['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+    dayHeaders:['Lu','Ma','Mi','Ju','Vi','Sá','Do'],
+    dayFull:['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'],
+    locale:'es-ES',
+    weekPanelTitle:'Semana',weekLabel:'Sem.',noDataShort:'sin datos',
+    monthResult:'Resultado del mes',tradingDays:'Días de trading',plusMinusDays:'Días + / -',
+    bestDay:'Mejor día',worstDay:'Peor día',tradesLabel:'Operaciones',
+    legendProfit:'día positivo',legendLoss:'día negativo',legendToday:'hoy',
+    legendIntensity:'La intensidad del color depende del resultado',
+    tradesShort:'operaciones',hmLegendProfit:'Ganancia',hmLegendLoss:'Pérdida',
+    winRate:'Tasa de acierto',profitFactor:'Factor de beneficio',maxDD:'Máx. drawdown',expectancy:'Esperanza',
+    avgWin:'Ganancia media',avgLoss:'Pérdida media',payoffRatio:'Ratio payoff',totalPnlMetric:'PnL total',
+    bestWinStreak:'Mejor racha',bestLossStreak:'Peor racha',winStreakSub:'días ganadores seguidos',lossStreakSub:'días perdedores seguidos',
+    equityCurve:'Curva de capital',profitFactorSub:'ganancia bruta / pérdida bruta',
+    winRateSub:'% de operaciones rentables',expectancySub:'beneficio esperado / op.',
+    maxDDSub:'caída máxima desde el pico',payoffSub:'ganancia media / pérdida media',
+    sideLong:'Largo',sideShort:'Corto',
+    toastFileLoaded:'{n} operaciones cargadas',toastExported:'Archivo exportado',
+    toastOffline:'Modo offline — usando caché',toastOnline:'De vuelta en línea',
+    toastInstalled:'Aplicación instalada',toastLangChanged:'Idioma cambiado'
+  },
+  fr:{
+    appTitle:'Calendrier Forex PnL',subhead:'Chargez un fichier CSV pour voir le calendrier des gains/pertes',
+    chooseFile:'Choisir un fichier CSV',noFile:'Aucun fichier',ready:'prêt',processing:'Traitement des données...',
+    calendarTab:'Calendrier',analyticsTab:'Analyse',heatmapTab:'Carte thermique',monthlyTab:'Mensuel',dailyTab:'Quotidien',
+    bnCalendar:'Calendrier',bnAnalytics:'Analyse',bnHeatmap:'Carte',bnMonthly:'Mois',bnDaily:'Jours',
+    exportCsv:'CSV',exportPng:'PNG',dropFile:'Déposez le fichier CSV ici',installApp:'Installer',
+    emptyCalendar:'Chargez un CSV pour voir le calendrier',emptyMonthly:'Chargez un CSV pour l\'analyse mensuelle',
+    emptyDaily:'Chargez un CSV pour l\'analyse quotidienne',emptyAnalytics:'Chargez un CSV pour l\'analyse',
+    emptyHeatmap:'Chargez un CSV pour la carte thermique',
+    thMonth:'Mois',thTrades:'Nombre de trades',thPnl:'Gain/Perte',thAvg:'Moyenne par trade',
+    thDate:'Date',thDayOfWeek:'Jour de la semaine',thTime:'Heure',thSymbol:'Symbole',thSide:'Côté',thPnlShort:'PnL',
+    darkMode:'Mode sombre',lightMode:'Mode clair',
+    loadedTrades:'{n} trades chargés',noData:'pas de données',error:'erreur',readError:'erreur de lecture',
+    invalidData:'Impossible de lire les données. Vérifiez le format CSV.',emptyFile:'Aucune donnée ou format invalide.',
+    months:['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'],
+    monthsShort:['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'],
+    monthsVeryShort:['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'],
+    dayHeaders:['Lu','Ma','Me','Je','Ve','Sa','Di'],
+    dayFull:['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'],
+    locale:'fr-FR',
+    weekPanelTitle:'Semaine',weekLabel:'Sem.',noDataShort:'aucune',
+    monthResult:'Résultat du mois',tradingDays:'Jours de trading',plusMinusDays:'Jours + / -',
+    bestDay:'Meilleur jour',worstDay:'Pire jour',tradesLabel:'Trades',
+    legendProfit:'jour positif',legendLoss:'jour négatif',legendToday:'aujourd\'hui',
+    legendIntensity:'L\'intensité de la couleur dépend du résultat',
+    tradesShort:'trades',hmLegendProfit:'Gain',hmLegendLoss:'Perte',
+    winRate:'Taux de réussite',profitFactor:'Facteur de profit',maxDD:'Drawdown max',expectancy:'Espérance',
+    avgWin:'Gain moyen',avgLoss:'Perte moyenne',payoffRatio:'Ratio payoff',totalPnlMetric:'PnL total',
+    bestWinStreak:'Meilleure série',bestLossStreak:'Pire série',winStreakSub:'jours gagnants consécutifs',lossStreakSub:'jours perdants consécutifs',
+    equityCurve:'Courbe de capital',profitFactorSub:'gain brut / perte brute',
+    winRateSub:'% de trades rentables',expectancySub:'profit attendu / trade',
+    maxDDSub:'baisse max depuis le pic',payoffSub:'gain moyen / perte moyenne',
+    sideLong:'Long',sideShort:'Short',
+    toastFileLoaded:'{n} trades chargés',toastExported:'Fichier exporté',
+    toastOffline:'Mode hors ligne — cache utilisé',toastOnline:'De retour en ligne',
+    toastInstalled:'Application installée',toastLangChanged:'Langue changée'
+  },
+  uk:{
+    appTitle:'Календар Forex PnL',subhead:'Завантажте CSV-файл, щоб побачити календар прибутків/збитків',
+    chooseFile:'Обрати CSV-файл',noFile:'Файл не обрано',ready:'готово',processing:'Обробка даних...',
+    calendarTab:'Календар',analyticsTab:'Аналітика',heatmapTab:'Теплова карта',monthlyTab:'Місячно',dailyTab:'Щоденно',
+    bnCalendar:'Календар',bnAnalytics:'Аналітика',bnHeatmap:'Карта',bnMonthly:'Місяці',bnDaily:'Дні',
+    exportCsv:'CSV',exportPng:'PNG',dropFile:'Перетягніть CSV-файл сюди',installApp:'Встановити',
+    emptyCalendar:'Завантажте CSV, щоб побачити календар',emptyMonthly:'Завантажте CSV для місячного аналізу',
+    emptyDaily:'Завантажте CSV для денного аналізу',emptyAnalytics:'Завантажте CSV для аналітики',
+    emptyHeatmap:'Завантажте CSV для теплової карти',
+    thMonth:'Місяць',thTrades:'Кількість угод',thPnl:'Прибуток/Збиток',thAvg:'Середнє на угоду',
+    thDate:'Дата',thDayOfWeek:'День тижня',thTime:'Час',thSymbol:'Символ',thSide:'Сторона',thPnlShort:'PnL',
+    darkMode:'Темний режим',lightMode:'Світлий режим',
+    loadedTrades:'завантажено {n} угод',noData:'немає даних',error:'помилка',readError:'помилка читання',
+    invalidData:'Не вдалося прочитати дані. Перевірте формат CSV.',emptyFile:'Немає даних або невірний формат.',
+    months:['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'],
+    monthsShort:['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'],
+    monthsVeryShort:['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'],
+    dayHeaders:['Пн','Вт','Ср','Чт','Пт','Сб','Нд'],
+    dayFull:['Неділя','Понеділок','Вівторок','Середа','Четвер','П\'ятниця','Субота'],
+    locale:'uk-UA',
+    weekPanelTitle:'Тиждень',weekLabel:'Тиж.',noDataShort:'немає',
+    monthResult:'Результат місяця',tradingDays:'Торгові дні',plusMinusDays:'Дні + / -',
+    bestDay:'Найкращий день',worstDay:'Найгірший день',tradesLabel:'Угоди',
+    legendProfit:'день прибутку',legendLoss:'день збитку',legendToday:'сьогодні',
+    legendIntensity:'Інтенсивність кольору залежить від результату',
+    tradesShort:'угод',hmLegendProfit:'Прибуток',hmLegendLoss:'Збиток',
+    winRate:'Відсоток перемог',profitFactor:'Фактор прибутку',maxDD:'Макс. просідання',expectancy:'Очікування',
+    avgWin:'Середній прибуток',avgLoss:'Середній збиток',payoffRatio:'Співвідношення',totalPnlMetric:'Загальний PnL',
+    bestWinStreak:'Найкраща серія',bestLossStreak:'Найгірша серія',winStreakSub:'переможних днів підряд',lossStreakSub:'збиткових днів підряд',
+    equityCurve:'Крива капіталу',profitFactorSub:'валовий прибуток / збиток',
+    winRateSub:'% прибуткових угод',expectancySub:'очікуваний прибуток / угода',
+    maxDDSub:'максимальне просідання',payoffSub:'сер. прибуток / сер. збиток',
+    sideLong:'Long',sideShort:'Short',
+    toastFileLoaded:'Завантажено {n} угод',toastExported:'Файл експортовано',
+    toastOffline:'Офлайн-режим — використовую кеш',toastOnline:'Знову онлайн',
+    toastInstalled:'Додаток встановлено',toastLangChanged:'Мову змінено'
+  }
+};
+
+// ============ WALUTY ============
+const CURRENCIES = {
+  USD:{symbol:'$',rate:1,locale:'en-US'},
+  EUR:{symbol:'€',rate:0.92,locale:'de-DE'},
+  PLN:{symbol:'zł',rate:4.02,locale:'pl-PL'},
+  GBP:{symbol:'£',rate:0.79,locale:'en-GB'}
+};
+
+// ============ STAN ============
+let currentLang='en';
+let currentTheme='light';
+let currentCurrency='USD';
+let allTrades=[];
+const dailyMap=new Map();
+let currentMonth=null;
+let loadedFileName='';
+let heatmapYear=null;
+let equityChartInstance=null;
+const statusState={icon:'fa-database',key:'ready',vars:{}};
+
+// ============ DOM ============
+const $=(id)=>document.getElementById(id);
+const fileInput=$('csvFileInput'),fileNameText=$('fileNameText'),fileNameDisplay=$('fileNameDisplay');
+const statusBadge=$('statusBadge'),loader=$('loader'),tabsBar=$('tabsBar');
+const emptyStateCalendar=$('emptyStateCalendar'),emptyStateMonthly=$('emptyStateMonthly');
+const emptyStateDaily=$('emptyStateDaily'),emptyStateAnalytics=$('emptyStateAnalytics');
+const emptyStateHeatmap=$('emptyStateHeatmap');
+const calendarLayout=$('calendarLayout'),calendarMonthTitle=$('calendarMonthTitle');
+const calendarGrid=$('calendarGrid'),calendarMain=$('calendarMain'),weekPanel=$('weekPanel');
+const sumMonthPnl=$('sumMonthPnl'),sumTradingDays=$('sumTradingDays'),sumPlusMinus=$('sumPlusMinus');
+const sumBestDay=$('sumBestDay'),sumWorstDay=$('sumWorstDay'),sumTrades=$('sumTrades');
+const analyticsContent=$('analyticsContent'),metricsGrid=$('metricsGrid'),streaksGrid=$('streaksGrid');
+const equityChartCanvas=$('equityChart');
+const heatmapWrap=$('heatmapWrap'),heatmapGrid=$('heatmapGrid'),hmYear=$('hmYear');
+const hmTooltip=$('hmTooltip');
+const monthlyTable=$('monthlyTable'),dailyTable=$('dailyTable');
+const monthlyTableBody=$('monthlyTableBody'),dailyTableBody=$('dailyTableBody');
+const dailyChartContainer=$('dailyChartContainer'),dailyChartBars=$('dailyChartBars');
+const langBtn=$('langBtn'),langDropdown=$('langDropdown'),langFlag=$('langFlag'),langCode=$('langCode');
+const currencyBtn=$('currencyBtn'),currencyDropdown=$('currencyDropdown'),currencyCode=$('currencyCode');
+const themeToggle=$('themeToggle'),themeIcon=$('themeIcon');
+const prevMonthBtn=$('prevMonthBtn'),nextMonthBtn=$('nextMonthBtn');
+const hmPrevYear=$('hmPrevYear'),hmNextYear=$('hmNextYear');
+const exportCsvBtn=$('exportCsvBtn'),exportPngBtn=$('exportPngBtn');
+const dayModal=$('dayModal'),modalClose=$('modalClose');
+const modalDate=$('modalDate'),modalSummary=$('modalSummary'),modalBody=$('modalBody');
+const dropOverlay=$('dropOverlay');
+const bottomNav=$('bottomNav');
+const toastContainer=$('toastContainer');
+const installBtn=$('installBtn');
+
+// ============ POMOCNICZE ============
+const t=(key,vars)=>{
+  let str=(translations[currentLang] && translations[currentLang][key])
+       || (translations.en && translations.en[key])
+       || key;
+  if(vars) Object.keys(vars).forEach(k=>{str=str.replace('{'+k+'}',vars[k]);});
+  return str;
+};
+const convertMoney=(v)=>v*CURRENCIES[currentCurrency].rate;
+const formatMoney=(v)=>{
+  return new Intl.NumberFormat(CURRENCIES[currentCurrency].locale,{
+    style:'currency',currency:currentCurrency,minimumFractionDigits:2,maximumFractionDigits:2
+  }).format(convertMoney(v));
+};
+const formatMoneySigned=(v)=>(v>=0?'+':'')+formatMoney(v);
+const pad2=(n)=>String(n).padStart(2,'0');
+const getDateKey=(d)=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+const getDateKeyFromParts=(y,m,d)=>`${y}-${pad2(m+1)}-${pad2(d)}`;
+const prefersReducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ============ STATUS ============
+function updateStatus(){
+  const text=t(statusState.key,statusState.vars);
+  statusBadge.innerHTML=`<i class="fas ${statusState.icon}"></i> <span>${text}</span>`;
+  statusBadge.className='status-badge';
+  if(statusState.key==='loadedTrades') statusBadge.classList.add('success');
+  else if(['error','readError','noData'].includes(statusState.key)) statusBadge.classList.add('error');
+}
+function setStatus(icon,key,vars){statusState.icon=icon;statusState.key=key;statusState.vars=vars||{};updateStatus();}
+
+// ============ TOAST ============
+function showToast(message,type='info'){
+  const toast=document.createElement('div');
+  toast.className=`toast ${type}`;
+  const icons={success:'fa-check-circle',error:'fa-exclamation-circle',info:'fa-info-circle',warn:'fa-exclamation-triangle'};
+  toast.innerHTML=`<i class="fas ${icons[type]||icons.info}"></i><span>${message}</span>`;
+  toastContainer.appendChild(toast);
+  setTimeout(()=>{
+    toast.classList.add('hide');
+    setTimeout(()=>toast.remove(),300);
+  },2800);
+}
+
+// ============ RIPPLE ============
+function attachRipple(el){
+  el.addEventListener('click',function(e){
+    if(prefersReducedMotion) return;
+    const rect=this.getBoundingClientRect();
+    const r=document.createElement('span');
+    r.className='ripple';
+    const size=Math.max(rect.width,rect.height);
+    r.style.width=r.style.height=size+'px';
+    r.style.left=(e.clientX-rect.left-size/2)+'px';
+    r.style.top=(e.clientY-rect.top-size/2)+'px';
+    this.appendChild(r);
+    setTimeout(()=>r.remove(),600);
+  });
+}
+
+// ============ COUNT-UP ============
+function countUp(el,target,fmt){
+  if(prefersReducedMotion){el.textContent=fmt(target);return;}
+  const duration=800;
+  const start=performance.now();
+  function tick(now){
+    const p=Math.min((now-start)/duration,1);
+    const eased=1-Math.pow(1-p,3);
+    const val=target*eased;
+    el.textContent=fmt(val);
+    if(p<1) requestAnimationFrame(tick);
+    else el.textContent=fmt(target);
+  }
+  requestAnimationFrame(tick);
+}
+
+// ============ AUTO-DETEKCJA JĘZYKA ============
+function detectLang(){
+  const supported=['en','pl','de','es','fr','uk'];
+  const candidates=[navigator.language, ...(navigator.languages||[])];
+  for(const c of candidates){
+    if(!c) continue;
+    const base=c.toLowerCase().split('-')[0];
+    if(supported.includes(base)) return base;
+  }
+  return 'en';
+}
+
+// ============ TŁUMACZENIA UI ============
+function applyTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key=el.dataset.i18n;
+    const val=t(key);
+    if(val) el.textContent=val;
+  });
+  // Flaga i kod języka
+  const flags={en:'🇬🇧',pl:'🇵🇱',de:'🇩🇪',es:'🇪🇸',fr:'🇫🇷',uk:'🇺🇦'};
+  langFlag.textContent=flags[currentLang]||'🌐';
+  langCode.textContent=currentLang.toUpperCase();
+  // Motyw
+  themeIcon.className=currentTheme==='dark'?'fas fa-sun':'fas fa-moon';
+  // Aktywna pozycja w dropdown
+  langDropdown.querySelectorAll('button').forEach(b=>{
+    b.classList.toggle('active',b.dataset.lang===currentLang);
+  });
+  currencyDropdown.querySelectorAll('button').forEach(b=>{
+    b.classList.toggle('active',b.dataset.currency===currentCurrency);
+  });
+  currencyCode.textContent=currentCurrency;
+  if(!loadedFileName) fileNameText.textContent=t('noFile');
+  updateStatus();
+  if(allTrades.length>0){
+    renderCalendar();renderMonthlyTable(allTrades);renderDailyTable(allTrades);
+    renderAnalytics(allTrades);renderHeatmap();
+    if(equityChartInstance){destroyEquityChart();if($('view-analytics').classList.contains('active')) renderEquityChart(allTrades);}
+  } else {
+    const map={emptyStateCalendar:'emptyCalendar',emptyStateMonthly:'emptyMonthly',emptyStateDaily:'emptyDaily',emptyStateAnalytics:'emptyAnalytics',emptyStateHeatmap:'emptyHeatmap'};
+    Object.keys(map).forEach(id=>{
+      const el=$(id);
+      if(el && el.style.display!=='none'){
+        const p=el.querySelector('p');
+        if(p) p.textContent=t(map[id]);
+      }
+    });
+  }
+}
+
+// ============ MOTYW ============
+function applyTheme(theme){
+  currentTheme=theme;
+  document.body.classList.add('theme-transitioning');
+  document.documentElement.setAttribute('data-theme',theme);
+  themeIcon.className=theme==='dark'?'fas fa-sun':'fas fa-moon';
+  try{localStorage.setItem('forex-theme',theme);}catch(e){}
+  const meta=document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content',theme==='dark'?'#0f172a':'#6366f1');
+  setTimeout(()=>document.body.classList.remove('theme-transitioning'),400);
+  if(allTrades.length>0 && currentMonth) renderCalendar();
+  if(allTrades.length>0 && equityChartInstance){
+    destroyEquityChart();
+    if($('view-analytics').classList.contains('active')) renderEquityChart(allTrades);
+  }
+}
+function toggleTheme(){applyTheme(currentTheme==='light'?'dark':'light');}
+
+// ============ ZMIANA JĘZYKA ============
+function setLang(lang){
+  if(!translations[lang]) lang='en';
+  currentLang=lang;
+  try{localStorage.setItem('forex-lang',lang);}catch(e){}
+  document.documentElement.setAttribute('lang',lang);
+  applyTranslations();
+  showToast(t('toastLangChanged'),'success');
+}
+
+// ============ ZMIANA WALUTY ============
+function setCurrency(cur){
+  if(!CURRENCIES[cur]) cur='USD';
+  currentCurrency=cur;
+  try{localStorage.setItem('forex-currency',cur);}catch(e){}
+  applyTranslations();
+}
+
+// ============ PARSOWANIE CSV ============
+function parseCSV(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim()!=='');
+  if(lines.length<2) return [];
+  const headers=lines[0].split(',').map(h=>h.trim());
+  const timeIdx=headers.findIndex(h=>h.toLowerCase().includes('time'));
+  let pnlIdx=headers.findIndex(h=>h.toLowerCase().includes('realized pnl') && h.toLowerCase().includes('value'));
+  if(pnlIdx===-1) pnlIdx=headers.findIndex(h=>h.trim()==='Realized PnL (value)');
+  if(pnlIdx===-1) pnlIdx=headers.findIndex(h=>h.includes('Realized PnL'));
+  const actionIdx=headers.findIndex(h=>h.toLowerCase()==='action');
+  if(timeIdx===-1||pnlIdx===-1){console.warn('Brak wymaganych kolumn:',headers);return [];}
+  const trades=[];
+  for(let i=1;i<lines.length;i++){
+    const row=[];let inQuotes=false,cur='';
+    const line=lines[i];
+    for(let j=0;j<line.length;j++){
+      const ch=line[j];
+      if(ch==='"') inQuotes=!inQuotes;
+      else if(ch===',' && !inQuotes){row.push(cur.trim());cur='';}
+      else cur+=ch;
+    }
+    row.push(cur.trim());
+    if(row.length<=Math.max(timeIdx,pnlIdx)) continue;
+    const timeStr=row[timeIdx],pnlStr=row[pnlIdx];
+    if(!timeStr||!pnlStr) continue;
+    let date;
+    try{
+      const isoLike=timeStr.replace(' ','T');
+      date=new Date(isoLike);
+      if(isNaN(date.getTime())) date=new Date(timeStr);
+    }catch(e){continue;}
+    if(isNaN(date.getTime())) continue;
+    const pnl=parseFloat(pnlStr);
+    if(isNaN(pnl)) continue;
+    let symbol='—',side='—';
+    if(actionIdx!==-1 && row[actionIdx]){
+      const actionStr=row[actionIdx];
+      const mSym=actionStr.match(/for symbol (\S+) at price/i);
+      if(mSym) symbol=mSym[1];
+      const mSide=actionStr.match(/Close (long|short) position/i);
+      if(mSide) side=mSide[1].toLowerCase();
+    }
+    const hh=pad2(date.getHours()),mm=pad2(date.getMinutes()),ss=pad2(date.getSeconds());
+    trades.push({
+      date,pnl,
+      year:date.getFullYear(),month:date.getMonth(),day:date.getDate(),
+      dayOfWeek:date.getDay(),dateKey:getDateKey(date),
+      time:`${hh}:${mm}:${ss}`,symbol,side
+    });
+  }
+  return trades;
+}
+
+// ============ MAPA DZIENNA ============
+function buildDailyMap(trades){
+  dailyMap.clear();
+  trades.forEach(t=>{
+    const key=t.dateKey;
+    if(!dailyMap.has(key)){
+      dailyMap.set(key,{dateKey:key,date:new Date(t.year,t.month,t.day),pnl:0,count:0,dayOfWeek:t.dayOfWeek,year:t.year,month:t.month,day:t.day,trades:[]});
+    }
+    const e=dailyMap.get(key);
+    e.pnl+=t.pnl;e.count+=1;e.trades.push(t);
+  });
+}
+
+// ============ METRYKI ============
+function calcMetrics(trades){
+  const daily=Array.from(dailyMap.values()).sort((a,b)=>a.date-b.date);
+  const totalTrades=trades.length;
+  const totalPnl=trades.reduce((s,t)=>s+t.pnl,0);
+  const wins=trades.filter(t=>t.pnl>0);
+  const losses=trades.filter(t=>t.pnl<0);
+  const grossWin=wins.reduce((s,t)=>s+t.pnl,0);
+  const grossLoss=Math.abs(losses.reduce((s,t)=>s+t.pnl,0));
+  const winRate=totalTrades?(wins.length/totalTrades)*100:0;
+  const profitFactor=grossLoss>0?grossWin/grossLoss:(grossWin>0?Infinity:0);
+  const avgWin=wins.length?grossWin/wins.length:0;
+  const avgLoss=losses.length?-grossLoss/losses.length:0;
+  const payoff=avgLoss!==0?Math.abs(avgWin/avgLoss):0;
+  const lossRate=totalTrades?losses.length/totalTrades:0;
+  const expectancy=(winRate/100)*avgWin+lossRate*avgLoss;
+  let cum=0,peak=0,maxDD=0;
+  const equityCurve=daily.map(d=>{
+    cum+=d.pnl;
+    if(cum>peak) peak=cum;
+    const dd=peak-cum;
+    if(dd>maxDD) maxDD=dd;
+    return {date:d.date,value:cum};
+  });
+  let curStreak=0,curSign=0,bestWin=0,bestLoss=0;
+  daily.forEach(d=>{
+    const s=d.pnl>0?1:(d.pnl<0?-1:0);
+    if(s===0) return;
+    if(s===curSign) curStreak++;
+    else{curStreak=1;curSign=s;}
+    if(s===1 && curStreak>bestWin) bestWin=curStreak;
+    if(s===-1 && curStreak>bestLoss) bestLoss=curStreak;
+  });
+  return {totalTrades,totalPnl,winRate,profitFactor,avgWin,avgLoss,payoff,expectancy,maxDD,bestWin,bestLoss,equityCurve};
+}
+
+// ============ ANALYTICS ============
+function renderAnalytics(trades){
+  if(!trades.length){emptyStateAnalytics.style.display='flex';analyticsContent.style.display='none';return;}
+  emptyStateAnalytics.style.display='none';
+  analyticsContent.style.display='block';
+  const m=calcMetrics(trades);
+  const fmtPF=m.profitFactor===Infinity?'∞':m.profitFactor.toFixed(2);
+  const cards=[
+    {label:'totalPnlMetric',icon:'fa-wallet',value:m.totalPnl,cls:m.totalPnl>=0?'pos':'neg',sub:'',currency:true},
+    {label:'winRate',icon:'fa-bullseye',value:m.winRate,fmt:(v)=>v.toFixed(1)+'%',cls:m.winRate>=50?'pos':'neg',sub:t('winRateSub')},
+    {label:'profitFactor',icon:'fa-scale-balanced',valueStr:fmtPF,cls:m.profitFactor>=1?'pos':'neg',sub:t('profitFactorSub')},
+    {label:'maxDD',icon:'fa-arrow-trend-down',value:m.maxDD,fmt:(v)=>'-'+formatMoney(v),cls:'neg',sub:t('maxDDSub')},
+    {label:'expectancy',icon:'fa-calculator',value:m.expectancy,fmt:(v)=>formatMoneySigned(v),cls:m.expectancy>=0?'pos':'neg',sub:t('expectancySub'),currency:true},
+    {label:'avgWin',icon:'fa-arrow-up',value:m.avgWin,fmt:(v)=>'+'+formatMoney(v),cls:'pos',sub:''},
+    {label:'avgLoss',icon:'fa-arrow-down',value:m.avgLoss,fmt:(v)=>formatMoney(v),cls:'neg',sub:''},
+    {label:'payoffRatio',icon:'fa-balance-scale',value:m.payoff,fmt:(v)=>v.toFixed(2),cls:m.payoff>=1?'pos':'neg',sub:t('payoffSub')}
+  ];
+  metricsGrid.innerHTML='';
+  cards.forEach((c,i)=>{
+    const card=document.createElement('div');
+    card.className='metric-card';
+    card.style.animationDelay=(i*40)+'ms';
+    const labelHtml=`<div class="metric-label"><i class="fas ${c.icon}"></i> <span>${t(c.label)}</span></div>`;
+    const valueEl=document.createElement('div');
+    valueEl.className='metric-value '+c.cls;
+    const subHtml=c.sub?`<div class="metric-sub">${c.sub}</div>`:'';
+    card.innerHTML=labelHtml+subHtml;
+    if(c.valueStr!==undefined){
+      valueEl.textContent=c.valueStr;
+      card.insertBefore(valueEl,card.querySelector('.metric-sub'));
+    } else if(c.value!==null && c.value!==undefined){
+      card.insertBefore(valueEl,card.querySelector('.metric-sub'));
+      const fmt=c.fmt||((v)=>c.currency?formatMoney(v):v.toFixed(2));
+      setTimeout(()=>countUp(valueEl,c.value,fmt),100+i*50);
+    }
+    metricsGrid.appendChild(card);
+  });
+  streaksGrid.innerHTML='';
+  [['fa-fire','bestWinStreak',m.bestWin,'pos','winStreakSub'],['fa-snowflake','bestLossStreak',m.bestLoss,'neg','lossStreakSub']].forEach((s,i)=>{
+    const card=document.createElement('div');
+    card.className='metric-card';
+    card.style.animationDelay=(i*40)+'ms';
+    card.innerHTML=`<div class="metric-label"><i class="fas ${s[0]}"></i> <span>${t(s[1])}</span></div><div class="metric-value ${s[3]}">${s[2]}</div><div class="metric-sub">${t(s[4])}</div>`;
+    streaksGrid.appendChild(card);
+  });
+  renderEquityChart(trades);
+}
+function destroyEquityChart(){if(equityChartInstance){try{equityChartInstance.destroy();}catch(e){}equityChartInstance=null;}}
+function renderEquityChart(trades){
+  destroyEquityChart();
+  if(typeof Chart==='undefined') return;
+  const m=calcMetrics(trades);
+  if(!m.equityCurve.length) return;
+  const styles=getComputedStyle(document.documentElement);
+  const lineColor=styles.getPropertyValue('--chart-line').trim()||'#6366f1';
+  const gridColor=styles.getPropertyValue('--chart-grid').trim()||'rgba(148,163,184,.18)';
+  const textColor=styles.getPropertyValue('--text-secondary').trim()||'#475569';
+  const fill1=styles.getPropertyValue('--chart-fill-1').trim()||'rgba(99,102,241,.35)';
+  const fill2=styles.getPropertyValue('--chart-fill-2').trim()||'rgba(99,102,241,0)';
+  const labels=m.equityCurve.map(p=>p.date.toLocaleDateString(t('locale'),{month:'short',day:'numeric'}));
+  const data=m.equityCurve.map(p=>convertMoney(p.value));
+  const ctx=equityChartCanvas.getContext('2d');
+  const gradient=ctx.createLinearGradient(0,0,0,340);
+  gradient.addColorStop(0,fill1);gradient.addColorStop(1,fill2);
+  equityChartInstance=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{label:t('equityCurve'),data,borderColor:lineColor,backgroundColor:gradient,borderWidth:2.5,fill:true,tension:.28,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:lineColor,pointHoverBorderColor:'#fff',pointHoverBorderWidth:2}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      animation:prefersReducedMotion?false:{duration:800,easing:'easeOutQuart'},
+      interaction:{intersect:false,mode:'index'},
+      plugins:{
+        legend:{display:false},
+        tooltip:{backgroundColor:currentTheme==='dark'?'#1e293b':'#0f172a',titleColor:'#fff',bodyColor:'#e2e8f0',padding:10,cornerRadius:10,displayColors:false,callbacks:{label:(c)=>formatMoney(c.parsed.y/CURRENCIES[currentCurrency].rate)}}
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{color:textColor,font:{size:10,weight:'600'},maxRotation:0,autoSkip:true,maxTicksLimit:10}},
+        y:{grid:{color:gridColor,drawBorder:false},ticks:{color:textColor,font:{size:10,weight:'600'},callback:(v)=>formatMoney(v/CURRENCIES[currentCurrency].rate)}}
+      }
+    }
+  });
+}
+
+// ============ HEATMAPA ============
+function renderHeatmap(){
+  if(!allTrades.length){emptyStateHeatmap.style.display='flex';heatmapWrap.style.display='none';return;}
+  emptyStateHeatmap.style.display='none';
+  heatmapWrap.style.display='block';
+  if(!heatmapYear){const latest=[...allTrades].sort((a,b)=>b.date-a.date)[0];heatmapYear=latest.year;}
+  hmYear.textContent=heatmapYear;
+  const monthsShort=t('monthsVeryShort');
+  const today=new Date();
+  const todayKey=getDateKey(today);
+  const yearData=allTrades.filter(t=>t.year===heatmapYear);
+  let maxAbs=0;const dayPnls={};
+  yearData.forEach(t=>{if(!dayPnls[t.dateKey]) dayPnls[t.dateKey]=0;dayPnls[t.dateKey]+=t.pnl;});
+  Object.values(dayPnls).forEach(v=>{maxAbs=Math.max(maxAbs,Math.abs(v));});
+  let html='';
+  for(let m=0;m<12;m++){
+    html+=`<div class="hm-row"><div class="hm-label">${monthsShort[m]}</div>`;
+    const daysInMonth=new Date(heatmapYear,m+1,0).getDate();
+    for(let d=1;d<=31;d++){
+      if(d>daysInMonth){html+=`<div class="hm-cell" style="opacity:0"></div>`;continue;}
+      const key=getDateKeyFromParts(heatmapYear,m,d);
+      const pnl=dayPnls[key];
+      const hasData=pnl!==undefined;
+      let cls='hm-cell';
+      if(hasData){const level=getIntensityLevel(pnl,maxAbs);const tone=pnl>=0?'pos':'neg';cls+=` has-data ${tone}-${level}`;}
+      if(key===todayKey) cls+=' today';
+      const delay=prefersReducedMotion?0:(m*8+d*2);
+      html+=`<div class="${cls}" data-key="${key}" data-pnl="${hasData?pnl:''}" style="animation-delay:${delay}ms"></div>`;
+    }
+    html+='</div>';
+  }
+  heatmapGrid.innerHTML=html;
+}
+function getIntensityLevel(pnl,maxAbs){
+  if(maxAbs===0) return 1;
+  const r=Math.abs(pnl)/maxAbs;
+  if(r<0.2) return 1;
+  if(r<0.4) return 2;
+  if(r<0.6) return 3;
+  if(r<0.8) return 4;
+  return 5;
+}
+function showHmTooltip(cell){
+  const key=cell.dataset.key;
+  const pnl=parseFloat(cell.dataset.pnl);
+  const parts=key.split('-');
+  const d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  const dateStr=d.toLocaleDateString(t('locale'),{year:'numeric',month:'long',day:'numeric'});
+  const cls=pnl>=0?'pos':'neg';
+  hmTooltip.innerHTML=`<div class="tt-date">${dateStr}</div><div class="tt-pnl ${cls}">${formatMoneySigned(pnl)}</div>`;
+  hmTooltip.classList.add('show');
+  const r=cell.getBoundingClientRect();
+  const tw=hmTooltip.offsetWidth,th=hmTooltip.offsetHeight;
+  let left=r.left+r.width/2-tw/2;let top=r.top-th-8;
+  if(left<8) left=8;
+  if(left+tw>window.innerWidth-8) left=window.innerWidth-tw-8;
+  if(top<8) top=r.bottom+8;
+  hmTooltip.style.left=left+'px';
+  hmTooltip.style.top=top+'px';
+}
+function hideHmTooltip(){hmTooltip.classList.remove('show');}
+document.addEventListener('mouseover',(e)=>{const c=e.target.closest('.hm-cell.has-data');if(c) showHmTooltip(c);});
+document.addEventListener('mouseout',(e)=>{if(e.target.closest('.hm-cell')) hideHmTooltip();});
+heatmapGrid.addEventListener('touchstart',(e)=>{const c=e.target.closest('.hm-cell.has-data');if(c) showHmTooltip(c);},{passive:true});
+heatmapGrid.addEventListener('touchend',()=>{setTimeout(hideHmTooltip,1200);});
+heatmapGrid.addEventListener('click',(e)=>{
+  const cell=e.target.closest('.hm-cell.has-data');
+  if(!cell) return;
+  const key=cell.dataset.key;
+  const [y,m]=key.split('-').map(Number);
+  currentMonth={year:y,month:m-1};
+  switchTab('calendar');
+  setTimeout(()=>openDayModal(key),200);
+});
+
+// ============ KALENDARZ ============
+function renderCalendar(){
+  if(!currentMonth) return;
+  const {year,month}=currentMonth;
+  calendarMonthTitle.classList.add('changing');
+  setTimeout(()=>{
+    calendarMonthTitle.textContent=`${t('months')[month]} ${year}`;
+    calendarMonthTitle.classList.remove('changing');
+  },120);
+  const firstDay=new Date(year,month,1);
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const startDow=firstDay.getDay();
+  const startOffset=startDow===0?6:startDow-1;
+  const today=new Date();
+  const todayKey=getDateKey(today);
+  let maxAbs=0;
+  for(let d=1;d<=daysInMonth;d++){
+    const e=dailyMap.get(getDateKeyFromParts(year,month,d));
+    if(e) maxAbs=Math.max(maxAbs,Math.abs(e.pnl));
+  }
+  let monthPnl=0,tradingDays=0,plusDays=0,minusDays=0,totalTrades=0;
+  let bestDay=null,worstDay=null;
+  let html='';
+  const headers=t('dayHeaders');
+  for(let i=0;i<7;i++) html+=`<div class="calendar-day-header">${headers[i]}</div>`;
+  for(let i=0;i<startOffset;i++) html+=`<div class="calendar-day empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const key=getDateKeyFromParts(year,month,d);
+    const e=dailyMap.get(key);
+    const isToday=key===todayKey;
+    let classes='calendar-day';
+    if(isToday) classes+=' today';
+    let inner=`<div class="day-number">${d}</div>`;
+    if(e){
+      monthPnl+=e.pnl;tradingDays++;totalTrades+=e.count;
+      if(e.pnl>=0) plusDays++;else minusDays++;
+      if(!bestDay||e.pnl>bestDay.pnl) bestDay={...e,day:d};
+      if(!worstDay||e.pnl<worstDay.pnl) worstDay={...e,day:d};
+      const level=getIntensityLevel(e.pnl,maxAbs);
+      const tone=e.pnl>=0?'pos-bg':'neg-bg';
+      classes+=` has-data level-${level} ${tone}`;
+      const pnlClass=e.pnl>=0?'pos':'neg';
+      inner+=`<div><div class="day-pnl ${pnlClass}">${formatMoneySigned(e.pnl)}</div><div class="day-trades">${e.count} ${t('tradesShort')}</div></div>`;
+    }
+    const delay=prefersReducedMotion?0:(startOffset+d-1)*12;
+    html+=`<div class="${classes}" data-key="${key}" style="animation-delay:${delay}ms">${inner}</div>`;
+  }
+  const totalCells=startOffset+daysInMonth;
+  const rem=totalCells%7;
+  if(rem!==0){for(let i=0;i<7-rem;i++) html+=`<div class="calendar-day empty"></div>`;}
+  calendarGrid.innerHTML=html;
+  sumMonthPnl.textContent=formatMoneySigned(monthPnl);
+  sumMonthPnl.className='value '+(monthPnl>=0?'pos':'neg');
+  sumTradingDays.textContent=tradingDays;
+  sumPlusMinus.innerHTML=`<span style="color:var(--positive)">${plusDays}</span> / <span style="color:var(--negative)">${minusDays}</span>`;
+  sumTrades.textContent=totalTrades;
+  if(bestDay){
+    sumBestDay.innerHTML=`${formatMoneySigned(bestDay.pnl)} <span class="sub">${pad2(bestDay.day)}.${pad2(month+1)}</span>`;
+    sumBestDay.className='value '+(bestDay.pnl>=0?'pos':'neg');
+  } else {sumBestDay.textContent='—';sumBestDay.className='value';}
+  if(worstDay){
+    sumWorstDay.innerHTML=`${formatMoneySigned(worstDay.pnl)} <span class="sub">${pad2(worstDay.day)}.${pad2(month+1)}</span>`;
+    sumWorstDay.className='value '+(worstDay.pnl>=0?'pos':'neg');
+  } else {sumWorstDay.textContent='—';sumWorstDay.className='value';}
+  renderWeekPanel(year,month);
+}
+function renderWeekPanel(year,month){
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const weeks=[];
+  let weekStart=null,weekEnd=null,weekPnl=0,weekCount=0;
+  for(let d=1;d<=daysInMonth;d++){
+    const date=new Date(year,month,d);
+    const dow=date.getDay();
+    if(dow===1 && weekStart!==null){
+      weeks.push({start:weekStart,end:weekEnd,pnl:weekPnl,count:weekCount});
+      weekStart=null;weekEnd=null;weekPnl=0;weekCount=0;
+    }
+    if(weekStart===null) weekStart=d;
+    weekEnd=d;
+    const e=dailyMap.get(getDateKeyFromParts(year,month,d));
+    if(e){weekPnl+=e.pnl;weekCount+=e.count;}
+  }
+  if(weekStart!==null) weeks.push({start:weekStart,end:weekEnd,pnl:weekPnl,count:weekCount});
+  let html=`<div class="week-panel-title">${t('weekPanelTitle')}</div>`;
+  weeks.forEach((w,i)=>{
+    const delay=prefersReducedMotion?0:i*40;
+    if(w.count>0){
+      const pnlClass=w.pnl>=0?'pos':'neg';
+      html+=`<div class="week-row" style="animation-delay:${delay}ms"><div class="week-label">${t('weekLabel')} ${i+1} · ${w.start}–${w.end}</div><div class="week-pnl ${pnlClass}">${formatMoneySigned(w.pnl)}</div><div class="week-trades">${w.count} ${t('tradesShort')}</div></div>`;
+    } else {
+      html+=`<div class="week-row no-data" style="animation-delay:${delay}ms"><div class="week-label">${t('weekLabel')} ${i+1} · ${w.start}–${w.end}</div><div class="week-pnl">${t('noDataShort')}</div></div>`;
+    }
+  });
+  weekPanel.innerHTML=html;
+}
+
+// ============ TABELE ============
+function aggregateMonthly(trades){
+  const map=new Map();
+  trades.forEach(t=>{
+    const key=`${t.year}-${pad2(t.month+1)}`;
+    if(!map.has(key)) map.set(key,{year:t.year,month:t.month,pnl:0,count:0});
+    const e=map.get(key);e.pnl+=t.pnl;e.count+=1;
+  });
+  return Array.from(map.values()).sort((a,b)=>a.year!==b.year?b.year-a.year:b.month-a.month);
+}
+function renderMonthlyTable(trades){
+  const data=aggregateMonthly(trades);
+  monthlyTableBody.innerHTML='';
+  data.forEach((m,i)=>{
+    const row=document.createElement('tr');
+    row.style.animationDelay=(i*25)+'ms';
+    const avg=m.pnl/m.count;
+    const monthDisplay=`${t('months')[m.month]} ${m.year}`;
+    const pnlClass=m.pnl>=0?'pos':'neg';
+    row.innerHTML=`<td><strong>${monthDisplay}</strong></td><td><span class="trade-count">${m.count}</span></td><td class="month-pnl ${pnlClass}">${formatMoneySigned(m.pnl)}</td><td>${formatMoney(avg)}</td>`;
+    monthlyTableBody.appendChild(row);
+  });
+  monthlyTable.style.display='table';
+  emptyStateMonthly.style.display='none';
+}
+function renderDailyTable(trades){
+  const data=Array.from(dailyMap.values()).sort((a,b)=>b.date-a.date);
+  dailyTableBody.innerHTML='';
+  const chartData=data.slice(0,30).reverse();
+  dailyChartBars.innerHTML='';
+  if(chartData.length>0){
+    const maxAbs=Math.max(...chartData.map(d=>Math.abs(d.pnl)),1);
+    chartData.forEach((d,i)=>{
+      const w=document.createElement('div');w.className='bar-wrapper';
+      const v=document.createElement('div');v.className='bar-value';v.textContent=formatMoney(d.pnl);
+      const b=document.createElement('div');b.className=`bar ${d.pnl>=0?'pos':'neg'}`;
+      const h=(Math.abs(d.pnl)/maxAbs)*140;b.style.height=`${Math.max(h,4)}px`;b.style.animationDelay=(i*20)+'ms';
+      const l=document.createElement('div');l.className='bar-label';l.textContent=`${d.date.getDate()}/${d.date.getMonth()+1}`;
+      w.append(v,b,l);dailyChartBars.appendChild(w);
+    });
+    dailyChartContainer.style.display='block';
+  } else {dailyChartContainer.style.display='none';}
+  data.forEach((d,i)=>{
+    const row=document.createElement('tr');
+    row.style.animationDelay=Math.min(i*15,600)+'ms';
+    const avg=d.pnl/d.count;
+    const dateDisplay=d.date.toLocaleDateString(t('locale'),{year:'numeric',month:'2-digit',day:'2-digit'});
+    const dayName=t('dayFull')[d.dayOfWeek];
+    const pnlClass=d.pnl>=0?'pos':'neg';
+    row.innerHTML=`<td><strong>${dateDisplay}</strong></td><td>${dayName}</td><td><span class="trade-count">${d.count}</span></td><td class="day-pnl-cell ${pnlClass}">${formatMoneySigned(d.pnl)}</td><td>${formatMoney(avg)}</td>`;
+    dailyTableBody.appendChild(row);
+  });
+  dailyTable.style.display='table';
+  emptyStateDaily.style.display='none';
+}
+
+// ============ MODAL ============
+function openDayModal(dateKey){
+  const e=dailyMap.get(dateKey);
+  if(!e) return;
+  const [y,m,d]=dateKey.split('-').map(Number);
+  const dateObj=new Date(y,m-1,d);
+  const dateStr=dateObj.toLocaleDateString(t('locale'),{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const cls=e.pnl>=0?'pos':'neg';
+  modalDate.textContent=dateStr;
+  modalSummary.innerHTML=`<span style="color:var(--${cls==='pos'?'positive':'negative'})">${formatMoneySigned(e.pnl)}</span> · ${e.count} ${t('tradesShort')}`;
+  const sortedTrades=[...e.trades].sort((a,b)=>a.date-b.date);
+  let html=`<table><thead><tr><th>${t('thTime')}</th><th>${t('thSymbol')}</th><th>${t('thSide')}</th><th style="text-align:right">${t('thPnlShort')}</th></tr></thead><tbody>`;
+  sortedTrades.forEach(tr=>{
+    const c=tr.pnl>=0?'pos':'neg';
+    const sideLabel=tr.side==='long'?t('sideLong'):(tr.side==='short'?t('sideShort'):tr.side);
+    const sideCls=tr.side==='long'?'long':(tr.side==='short'?'short':'');
+    html+=`<tr><td>${tr.time}</td><td>${tr.symbol||'—'}</td><td>${sideCls?`<span class="side-badge ${sideCls}">${sideLabel}</span>`:tr.side}</td><td style="text-align:right" class="day-pnl-cell ${c}">${formatMoneySigned(tr.pnl)}</td></tr>`;
+  });
+  html+='</tbody></table>';
+  modalBody.innerHTML=html;
+  dayModal.classList.remove('closing');
+  dayModal.classList.add('show');
+}
+function closeDayModal(){
+  dayModal.classList.add('closing');
+  setTimeout(()=>{dayModal.classList.remove('show','closing');},250);
+}
+calendarGrid.addEventListener('click',(e)=>{
+  const cell=e.target.closest('.calendar-day.has-data');
+  if(!cell) return;
+  openDayModal(cell.dataset.key);
+});
+modalClose.addEventListener('click',closeDayModal);
+dayModal.addEventListener('click',(e)=>{if(e.target===dayModal) closeDayModal();});
+let modalTouchStart=null;
+dayModal.addEventListener('touchstart',(e)=>{if(!e.target.closest('.modal')) return;modalTouchStart=e.touches[0].clientY;},{passive:true});
+dayModal.addEventListener('touchmove',(e)=>{
+  if(modalTouchStart===null) return;
+  const delta=e.touches[0].clientY-modalTouchStart;
+  const modalEl=dayModal.querySelector('.modal');
+  if(delta>0 && modalEl.scrollTop<=0){
+    modalEl.style.transform=`translateY(${Math.min(delta,200)}px)`;
+    modalEl.style.transition='none';
+  }
+},{passive:true});
+dayModal.addEventListener('touchend',(e)=>{
+  if(modalTouchStart===null) return;
+  const modalEl=dayModal.querySelector('.modal');
+  const delta=(e.changedTouches[0].clientY-modalTouchStart);
+  modalEl.style.transform='';modalEl.style.transition='';
+  if(delta>100) closeDayModal();
+  modalTouchStart=null;
+});
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape' && dayModal.classList.contains('show')) closeDayModal();
+  if($('view-calendar').classList.contains('active') && !dayModal.classList.contains('show')){
+    if(e.key==='ArrowLeft') changeMonth(-1);
+    if(e.key==='ArrowRight') changeMonth(1);
+  }
+});
+
+// ============ NAWIGACJA ============
+function changeMonth(delta){
+  if(!currentMonth) return;
+  let m=currentMonth.month+delta,y=currentMonth.year;
+  if(m<0){m=11;y--;} else if(m>11){m=0;y++;}
+  currentMonth={year:y,month:m};
+  renderCalendar();
+}
+prevMonthBtn.addEventListener('click',()=>changeMonth(-1));
+nextMonthBtn.addEventListener('click',()=>changeMonth(1));
+let calTouchStart=null,calTouchDelta=0;
+calendarGrid.addEventListener('touchstart',(e)=>{calTouchStart=e.touches[0].clientX;calTouchDelta=0;},{passive:true});
+calendarGrid.addEventListener('touchmove',(e)=>{if(calTouchStart===null) return;calTouchDelta=e.touches[0].clientX-calTouchStart;},{passive:true});
+calendarGrid.addEventListener('touchend',()=>{
+  if(Math.abs(calTouchDelta)>60) changeMonth(calTouchDelta>0?-1:1);
+  calTouchStart=null;calTouchDelta=0;
+});
+hmPrevYear.addEventListener('click',()=>{if(heatmapYear){heatmapYear--;renderHeatmap();}});
+hmNextYear.addEventListener('click',()=>{if(heatmapYear){heatmapYear++;renderHeatmap();}});
+
+// ============ ZAKŁADKI ============
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  document.querySelectorAll('.view-section').forEach(s=>s.classList.remove('active'));
+  const target=$('view-'+tab);
+  if(target){
+    target.classList.add('active');
+    target.style.animation='none';void target.offsetWidth;target.style.animation='';
+  }
+  if(tab==='analytics'){
+    requestAnimationFrame(()=>{if(allTrades.length>0 && !equityChartInstance) renderEquityChart(allTrades);});
+  }
+  if(window.innerWidth<=720) window.scrollTo({top:0,behavior:prefersReducedMotion?'auto':'smooth'});
+}
+document.querySelectorAll('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>switchTab(btn.dataset.tab)));
+document.querySelectorAll('.bn-item').forEach(btn=>btn.addEventListener('click',()=>switchTab(btn.dataset.tab)));
+
+// ============ DROPDOWNY ============
+function toggleDropdown(btn,dropdown){
+  const isOpen=dropdown.classList.contains('show');
+  document.querySelectorAll('.selector-dropdown').forEach(d=>d.classList.remove('show'));
+  if(!isOpen) dropdown.classList.add('show');
+}
+langBtn.addEventListener('click',(e)=>{e.stopPropagation();toggleDropdown(langBtn,langDropdown);});
+currencyBtn.addEventListener('click',(e)=>{e.stopPropagation();toggleDropdown(currencyBtn,currencyDropdown);});
+document.addEventListener('click',(e)=>{
+  if(!e.target.closest('.selector')) document.querySelectorAll('.selector-dropdown').forEach(d=>d.classList.remove('show'));
+});
+langDropdown.querySelectorAll('button').forEach(b=>{
+  b.addEventListener('click',()=>{setLang(b.dataset.lang);langDropdown.classList.remove('show');});
+});
+currencyDropdown.querySelectorAll('button').forEach(b=>{
+  b.addEventListener('click',()=>{setCurrency(b.dataset.currency);currencyDropdown.classList.remove('show');});
+});
+
+// ============ EKSPORT ============
+function exportCSV(){
+  if(!allTrades.length){showToast(t('noData'),'error');return;}
+  const sorted=[...allTrades].sort((a,b)=>a.date-b.date);
+  const headers=['Date','Time','Symbol','Side','PnL (USD)'];
+  const rows=[headers.join(',')];
+  sorted.forEach(t=>{
+    const dateStr=`${t.year}-${pad2(t.month+1)}-${pad2(t.day)}`;
+    const sym=(t.symbol||'').replace(/,/g,' ');
+    rows.push([dateStr,t.time,sym,t.side,t.pnl.toFixed(2)].join(','));
+  });
+  const csv='\uFEFF'+rows.join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`forex-pnl-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),500);
+  showToast(t('toastExported'),'success');
+}
+async function exportPNG(){
+  if(!allTrades.length){showToast(t('noData'),'error');return;}
+  if(typeof html2canvas==='undefined'){showToast('html2canvas unavailable','error');return;}
+  const activeView=document.querySelector('.view-section.active');
+  if(!activeView) return;
+  let target=activeView;
+  if(activeView.id==='view-calendar') target=$('calendarMain');
+  const bg=currentTheme==='dark'?'#0f172a':'#ffffff';
+  try{
+    const canvas=await html2canvas(target,{backgroundColor:bg,scale:2,useCORS:true,logging:false});
+    const url=canvas.toDataURL('image/png');
+    const a=document.createElement('a');
+    a.href=url;a.download=`forex-pnl-${activeView.id.replace('view-','')}-${new Date().toISOString().slice(0,10)}.png`;
+    document.body.appendChild(a);a.click();a.remove();
+    showToast(t('toastExported'),'success');
+  }catch(err){console.error(err);showToast('PNG export error','error');}
+}
+exportCsvBtn.addEventListener('click',exportCSV);
+exportPngBtn.addEventListener('click',exportPNG);
+
+// ============ DRAG & DROP ============
+let dragCounter=0;
+document.addEventListener('dragenter',(e)=>{if(e.dataTransfer && e.dataTransfer.types.includes('Files')){dragCounter++;dropOverlay.classList.add('show');}});
+document.addEventListener('dragover',(e)=>{e.preventDefault();});
+document.addEventListener('dragleave',()=>{dragCounter--;if(dragCounter<=0){dragCounter=0;dropOverlay.classList.remove('show');}});
+document.addEventListener('drop',(e)=>{
+  e.preventDefault();dragCounter=0;dropOverlay.classList.remove('show');
+  const files=e.dataTransfer && e.dataTransfer.files;
+  if(files && files.length) handleFile(files[0]);
+});
+
+// ============ OBSŁUGA PLIKU ============
+function handleFile(file){
+  if(!file) return;
+  loadedFileName=file.name;
+  fileNameText.textContent=file.name;
+  fileNameDisplay.classList.add('updated');
+  setTimeout(()=>fileNameDisplay.classList.remove('updated'),400);
+  loader.classList.add('show');
+  calendarLayout.style.display='none';
+  [emptyStateCalendar,emptyStateMonthly,emptyStateDaily,emptyStateAnalytics,emptyStateHeatmap].forEach(el=>{if(el) el.style.display='none';});
+  analyticsContent.style.display='none';heatmapWrap.style.display='none';
+  monthlyTable.style.display='none';dailyTable.style.display='none';
+  dailyChartContainer.style.display='none';tabsBar.style.display='none';bottomNav.style.display='none';
+  destroyEquityChart();
+  setStatus('fa-spinner fa-pulse','processing');
+  const reader=new FileReader();
+  reader.onload=(event)=>{
+    const content=event.target.result;
+    try{
+      const trades=parseCSV(content);
+      loader.classList.remove('show');
+      renderResults(trades);
+    }catch(err){
+      console.error(err);loader.classList.remove('show');
+      setStatus('fa-times-circle','error');
+      [emptyStateCalendar,emptyStateMonthly,emptyStateDaily,emptyStateAnalytics,emptyStateHeatmap].forEach(el=>{if(el){el.style.display='flex';const p=el.querySelector('p');if(p)p.textContent=t('invalidData');}});
+    }
+  };
+  reader.onerror=()=>{
+    loader.classList.remove('show');setStatus('fa-times-circle','readError');
+    [emptyStateCalendar,emptyStateMonthly,emptyStateDaily,emptyStateAnalytics,emptyStateHeatmap].forEach(el=>{if(el){el.style.display='flex';const p=el.querySelector('p');if(p)p.textContent=t('invalidData');}});
+  };
+  reader.readAsText(file);
+}
+fileInput.addEventListener('change',(e)=>{const file=e.target.files[0];if(file) handleFile(file);});
+
+// ============ GŁÓWNY RENDER ============
+function renderResults(trades){
+  allTrades=trades;
+  if(!trades.length){
+    calendarLayout.style.display='none';
+    [emptyStateCalendar,emptyStateMonthly,emptyStateDaily,emptyStateAnalytics,emptyStateHeatmap].forEach(el=>{if(el){el.style.display='flex';const p=el.querySelector('p');if(p)p.textContent=t('emptyFile');}});
+    analyticsContent.style.display='none';heatmapWrap.style.display='none';
+    monthlyTable.style.display='none';dailyTable.style.display='none';dailyChartContainer.style.display='none';
+    tabsBar.style.display='none';bottomNav.style.display='none';
+    setStatus('fa-exclamation-triangle','noData');
+    showToast(t('noData'),'error');
+    return;
+  }
+  buildDailyMap(trades);
+  const sorted=[...trades].sort((a,b)=>b.date-a.date);
+  currentMonth={year:sorted[0].year,month:sorted[0].month};
+  heatmapYear=sorted[0].year;
+  calendarLayout.style.display='grid';
+  [emptyStateCalendar,emptyStateMonthly,emptyStateDaily,emptyStateAnalytics,emptyStateHeatmap].forEach(el=>{if(el) el.style.display='none';});
+  renderCalendar();renderMonthlyTable(trades);renderDailyTable(trades);renderAnalytics(trades);renderHeatmap();
+  tabsBar.style.display='flex';
+  if(window.innerWidth<=720) bottomNav.style.display='block';
+  setStatus('fa-check-circle','loadedTrades',{n:trades.length});
+  showToast(t('toastFileLoaded',{n:trades.length}),'success');
+}
+
+// ============ PWA ============
+// Manifest + ikony (inline, bez zewnętrznych plików)
+function setupPWA(){
+  // Ikona SVG jako data URL
+  const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6366f1"/><stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient></defs>
+    <rect width="192" height="192" rx="42" fill="url(#g)"/>
+    <path d="M40 128 L72 86 L104 112 L152 60" stroke="white" stroke-width="11" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="72" cy="86" r="7" fill="white"/>
+    <circle cx="104" cy="112" r="7" fill="white"/>
+    <circle cx="152" cy="60" r="7" fill="white"/>
+  </svg>`;
+  const iconDataUrl='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(iconSvg)));
+
+  // Ustaw favicon i apple-touch-icon
+  document.getElementById('appFavicon').href=iconDataUrl;
+  document.getElementById('appAppleIcon').href=iconDataUrl;
+
+  // Manifest jako Blob URL
+  const manifest={
+    name:'Forex PnL Calendar Analyzer',
+    short_name:'Forex PnL',
+    description:'Analizator wyników tradingowych z kalendarzem, heatmapą i metrykami',
+    start_url:'.',
+    scope:'.',
+    display:'standalone',
+    background_color:'#0f172a',
+    theme_color:'#6366f1',
+    orientation:'any',
+    lang:currentLang,
+    icons:[
+      {src:iconDataUrl,sizes:'192x192',type:'image/svg+xml',purpose:'any'},
+      {src:iconDataUrl,sizes:'512x512',type:'image/svg+xml',purpose:'any'},
+      {src:iconDataUrl,sizes:'any',type:'image/svg+xml',purpose:'maskable'}
+    ]
+  };
+  const manifestBlob=new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
+  document.getElementById('appManifest').href=URL.createObjectURL(manifestBlob);
+
+  // Service Worker (inline Blob)
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+    const swCode=`
+      const CACHE='forex-pnl-v1';
+      const ASSETS=[
+        './',
+        'https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap',
+        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+        'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+      ];
+      self.addEventListener('install',e=>{
+        e.waitUntil(caches.open(CACHE).then(c=>Promise.allSettled(ASSETS.map(a=>c.add(a).catch(()=>{})))));
+        self.skipWaiting();
+      });
+      self.addEventListener('activate',e=>{
+        e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
+        self.clients.claim();
+      });
+      self.addEventListener('fetch',e=>{
+        if(e.request.method!=='GET') return;
+        e.respondWith(
+          caches.match(e.request).then(r=>r || fetch(e.request).then(resp=>{
+            if(resp && resp.status===200){
+              const clone=resp.clone();
+              caches.open(CACHE).then(c=>c.put(e.request,clone).catch(()=>{}));
+            }
+            return resp;
+          }).catch(()=>caches.match('./')))
+        );
+      });
+    `;
+    try{
+      const blob=new Blob([swCode],{type:'application/javascript'});
+      const url=URL.createObjectURL(blob);
+      navigator.serviceWorker.register(url,{scope:'./'}).then(reg=>{
+        // Sprawdź aktualizacje
+        reg.addEventListener('updatefound',()=>{
+          console.log('[PWA] Update found');
+        });
+      }).catch(err=>{
+        console.warn('[PWA] SW registration failed (OK for single-file):',err.message);
+      });
+    }catch(err){
+      console.warn('[PWA] SW setup error:',err.message);
+    }
+  }
+
+  // Install prompt
+  let deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt',(e)=>{
+    e.preventDefault();
+    deferredPrompt=e;
+    installBtn.classList.add('show');
+  });
+  installBtn.addEventListener('click',async()=>{
+    if(!deferredPrompt){installBtn.classList.remove('show');return;}
+    deferredPrompt.prompt();
+    const {outcome}=await deferredPrompt.userChoice;
+    if(outcome==='accepted') showToast(t('toastInstalled'),'success');
+    deferredPrompt=null;
+    installBtn.classList.remove('show');
+  });
+  window.addEventListener('appinstalled',()=>{
+    installBtn.classList.remove('show');
+    showToast(t('toastInstalled'),'success');
+  });
+
+  // Online / Offline
+  window.addEventListener('offline',()=>showToast(t('toastOffline'),'warn'));
+  window.addEventListener('online',()=>showToast(t('toastOnline'),'success'));
+}
+
+// ============ INIT ============
+function init(){
+  // Priorytety: localStorage > browser language > fallback
+  let savedTheme='light',savedLang=null,savedCurrency=null;
+  try{
+    savedTheme=localStorage.getItem('forex-theme')||'light';
+    savedLang=localStorage.getItem('forex-lang');
+    savedCurrency=localStorage.getItem('forex-currency');
+  }catch(e){}
+  currentLang=savedLang && translations[savedLang] ? savedLang : detectLang();
+  currentCurrency=savedCurrency && CURRENCIES[savedCurrency] ? savedCurrency : 'USD';
+  document.documentElement.setAttribute('lang',currentLang);
+  applyTheme(savedTheme);
+  applyTranslations();
+  [emptyStateCalendar,emptyStateMonthly,emptyStateDaily,emptyStateAnalytics,emptyStateHeatmap].forEach(el=>{if(el) el.style.display='flex';});
+  calendarLayout.style.display='none';analyticsContent.style.display='none';heatmapWrap.style.display='none';
+  monthlyTable.style.display='none';dailyTable.style.display='none';dailyChartContainer.style.display='none';
+  tabsBar.style.display='none';
+  document.querySelectorAll('.control-btn,.nav-btn,.bn-item,.tab-btn').forEach(attachRipple);
+  setupPWA();
+  window.addEventListener('resize',()=>{
+    if(allTrades.length>0) bottomNav.style.display=window.innerWidth<=720?'block':'none';
+  });
+}
+themeToggle.addEventListener('click',toggleTheme);
+init();
+})();
+</script>
+</body>
+</html>
